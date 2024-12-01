@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>AnimeGMV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        width: 100vw;
+        max-width: 1250px;
+        color: white;
+        margin: 0px auto;
+        background: black;
+        font-family: Arial;
+      }
+      input, button {
+        color: white;
+        background: #222;
+        margin: 2px;
+        padding: 2px 4px;
+        border: 2px #444 solid;
+        border-radius: 0.75rem;
+      }
+      button {
+        border-radius: 0.25rem;
+      }
+      button:hover {
+        background: #444;
+      }
+      button[disabled] {
+        color: #ddd;
+        background: #111;
+        cursor: not-allowed;
+      }
+      .clicky {
+        cursor: pointer;
+      }
+      .clicky:hover {
+        background: #222;
+      }
+      div:has(>iframe) {
+        display: flex;
+        justify-content: center;
+      }
+      iframe {
+        width: 100vw;
+        max-width: 1250px;
+        aspect-ratio: 16/9;
+        border: 1px #444 solid;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <input type="search" id="buswa" onkeyup="if(event.key=='Enter'){search()}">
+      <button onclick="search()">Search</button>
+    </div>
+    <div id="results"></div>
+    <script>
+      console.clear();
+      function geturl(url) {
+        return new Promise((resolve, reject) => {
+          fetch('https://api.fsh.plus/html?url='+encodeURIComponent(url))
+            .then(res=>res.text())
+            .then(res=>resolve(res));
+        })
+      }
+      function search() {
+        geturl(`https://www3.animeflv.net/browse?q=${document.getElementById('buswa').value}`).then(res=>{
+          let con = res.match(/<!--<Animes>-->[^¬]*?<!--<\/Animes>-->/g)[0].match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? [];
+          document.getElementById('results').innerHTML = `<p>${con.length} results</p>`;
+          Array.from(con).forEach(m => {
+            let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0];
+            document.getElementById('results').innerHTML += `<li onclick="view('${m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0]}', '${title}')" class="clicky">${title}</li>`;
+          })
+        })
+      }
+      function view(id, nom) {
+        geturl(`https://www3.animeflv.net/anime/${id}`).then(res=>{
+          document.getElementById('results').innerHTML = `<p>Episodes</p>
+${JSON.parse(res.match(/var episodes = \[.*?\];/g)[0].split(';')[0].split(' = ')[1]).map(e=>`<li onclick="ep('${id}', '${e[0]}', '${nom}')" class="clicky">EP ${e[0]}</li>`).join('')}`;
+        })
+      }
+      function ep(ser, id, nom) {
+        geturl(`https://www3.animeflv.net/ver/${ser}-${id}`).then(res=>{
+          let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/g)[0].split(';')[0].split(' = ')[1]);
+          console.log(videos)
+          document.getElementById('results').innerHTML = nom+' - '+id+'<br>'+videos.SUB.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')+`<br><div><iframe allowfullscreen></iframe></div><span style="display:flex"><button ${id==1?'disabled':`onclick="ep('${ser}','${Number(id)-1}', '${nom}')"`}>Prev</button><span style="flex:1"></span><button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button><span style="flex:1"></span><button onclick="ep('${ser}','${Number(id)+1}', '${nom}')">Next</button></span>`;
+          updateVid(videos.SUB[0].code);
+        })
+      }
+      function updateVid(code) {
+        document.querySelector('iframe').src = code;
+      }
+      function download(url, nom, id) {
+        let a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = nom+' - '+id+'.mp4';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    </script>
+  </body>
+</html>
