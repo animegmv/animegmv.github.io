@@ -14,6 +14,7 @@
       }
       p {
         margin: 6px 0px;
+        width: fit-content;
       }
       input, button {
         color: white;
@@ -40,6 +41,9 @@
       .clicky:hover {
         background: #222;
       }
+      #top {
+        width: fit-content;
+      }
       div:has(>iframe) {
         display: flex;
         justify-content: center;
@@ -50,6 +54,25 @@
         aspect-ratio: 16/9;
         border: 1px #444 solid;
         box-sizing: border-box;
+      }
+      .wrap {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        max-width: 1000px;
+      }
+      .wrap div {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 calc(20% - (4 * 1em) / 5);
+      }
+      .wrap div img {
+        width: 100%;
+      }
+      .wrap div span {
+        height: 3.50em;
+        font-size: 75%;
       }
     </style>
   </head>
@@ -68,14 +91,17 @@
       function search() {
         geturl(`https://www3.animeflv.net/browse?page=${state[si].n}&q=${state[si].q}`)
           .then(res=>{
-            let con = res
+            let con = Array.from(res
               .match(/<!--<Animes>-->[^¬]*?<!--<\/Animes>-->/g)[0]
-              .match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? [];
-            document.getElementById('results').innerHTML = `<p>${con.length} results</p>${page>1?'<button></button>':''}`;
-            Array.from(con).forEach(m => {
+              .match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? []);
+            document.getElementById('results').innerHTML = `<p>${con.length} results</p>${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1}};si=state.length-1;setTop();">Prev</button>`:''}${state[si].n>1||con.length>23?state[si].n:''}${con.length>23?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1}};si=state.length-1;setTop();">Next</button>`:''}`;
+            let pp = [];
+            con.forEach(m => {
               let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0];
-              document.getElementById('results').innerHTML += `<li onclick="view('${m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0]}', '${title}')" class="clicky">${title}</li>`;
+              let img = m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1];
+              pp.push(`<div onclick="view('${m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0].replaceAll("'","¬¬")}', '${title.replaceAll("'","¬¬")}')" class="clicky"><img src="${img}"><span>${title}</span></div>`);
             })
+            document.getElementById('results').innerHTML += `<div class="wrap">${pp.join('')}</div>`;
           })
       }
 
@@ -84,11 +110,11 @@
 
       function setTop() {
         let top = document.getElementById('top');
-        top.innerHTML = (state.length>1?(''):'');
+        top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
         switch (state[si].page) {
           case 'search':
-            top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter')search();">
-<button onclick="state[si+1]={page:'search',q:document.getElementById('buswa').value,n:1};si++">Search</button>`;
+            top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter')search();" value="${state[si].q}">
+<button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1};si=state.length-1;setTop();">Search</button>`;
             search();
             break;
           default:
@@ -97,6 +123,7 @@
       }
 
       setTop();
+      search();
     </script>
     <div>
       
@@ -104,7 +131,7 @@
     <div id="results"></div>
     <script>
       function view(id, nom) {
-        geturl(`https://www3.animeflv.net/anime/${id}`).then(res=>{
+        geturl(`https://www3.animeflv.net/anime/${id.replaceAll('¬¬',"'")}`).then(res=>{
           document.getElementById('results').innerHTML = `<p>Episodes</p>
 ${JSON.parse(res.match(/var episodes = \[.*?\];/g)[0].split(';')[0].split(' = ')[1]).map(e=>`<li onclick="ep('${id}', '${e[0]}', '${nom}')" class="clicky">EP ${e[0]}</li>`).join('')}`;
         })
@@ -113,7 +140,7 @@ ${JSON.parse(res.match(/var episodes = \[.*?\];/g)[0].split(';')[0].split(' = ')
         geturl(`https://www3.animeflv.net/ver/${ser}-${id}`).then(res=>{
           let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/g)[0].split(';')[0].split(' = ')[1]);
           console.log(videos)
-          document.getElementById('results').innerHTML = nom+' - '+id+'<br>'+videos.SUB.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')+`<br><div><iframe allowfullscreen></iframe></div><span style="display:flex"><button ${id==1?'disabled':`onclick="ep('${ser}','${Number(id)-1}', '${nom}')"`}>Prev</button><span style="flex:1"></span><button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button><span style="flex:1"></span><button onclick="ep('${ser}','${Number(id)+1}', '${nom}')">Next</button></span>`;
+          document.getElementById('results').innerHTML = nom.replaceAll('¬¬',"'")+' - '+id+'<br>'+videos.SUB.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')+`<br><div><iframe allowfullscreen></iframe></div><span style="display:flex"><button ${id==1?'disabled':`onclick="ep('${ser}','${Number(id)-1}', '${nom}')"`}>Prev</button><span style="flex:1"></span><button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button><span style="flex:1"></span><button onclick="ep('${ser}','${Number(id)+1}', '${nom}')">Next</button></span>`;
           updateVid(videos.SUB[0].code);
         })
       }
