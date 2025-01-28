@@ -87,6 +87,9 @@
             .then(res=>resolve(res));
         })
       }
+      function getImgUrl(url) {
+        return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`
+      }
 
       function search() {
         geturl(`https://www3.animeflv.net/browse?page=${state[si].n}&q=${state[si].q}`)
@@ -98,7 +101,7 @@
             let pp = [];
             con.forEach(m => {
               let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0];
-              let img = m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1];
+              let img = getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1]);
               pp.push(`<div onclick="view('${m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0].replaceAll("'","¬¬")}', '${title.replaceAll("'","¬¬")}')" class="clicky"><img src="${img}"><span>${title}</span></div>`);
             })
             document.getElementById('results').innerHTML += `<div class="wrap">${pp.join('')}</div>`;
