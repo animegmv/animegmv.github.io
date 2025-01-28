@@ -5,18 +5,25 @@
     <meta charset="utf-8">
     <title>DooM</title>
     <style>
-      .container {
+      body {
         display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+        margin: 0px;
+        background: #222;
+      }
+      canvas {
+        flex: 1;
+        max-width: 100vw;
+        max-height: 100vh;
+        aspect-ratio: 640 / 400;
       }
     </style>
   </head>
   <body>
-    <p id="focushint"></p>
-    <div class="container">
-      <canvas id="screen" width="640" height="400" tabindex="0">This is where the DooM screen should render.</canvas>
-    </div>
-    Browser Animation FPS: <span id="animationfps_stats">0</span><br>
-
+    <canvas id="screen" width="640" height="400" tabindex="0">This is where the DooM screen should render.</canvas>
     <script defer>
         'use strict';
 var memory = new WebAssembly.Memory({ initial : 108 });
@@ -123,21 +130,7 @@ WebAssembly.instantiateStreaming(fetch('https://diekmann.github.io/wasm-fizzbuzz
         event.preventDefault();
     }, false);
 
-    /*hint that the canvas should have focus to capute keyboard events*/
-    const focushint = document.getElementById("focushint");
-    const printFocusInHint = function(e) {
-        focushint.innerText = "Keyboard events will be captured as long as the the DOOM canvas has focus.";
-        focushint.style.fontWeight = "normal";
-    };
-    canvas.addEventListener('focusin', printFocusInHint, false);
-
-    canvas.addEventListener('focusout', function(e) {
-        focushint.innerText = "Click on the canvas to capute input and start playing.";
-        focushint.style.fontWeight = "bold";
-    }, false);
-
     canvas.focus();
-    printFocusInHint();
 
     /*Main game loop*/
     function step(timestamp) {
