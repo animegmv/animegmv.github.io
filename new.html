@@ -118,7 +118,6 @@
             let pp = [];
             con.forEach(m => {
               let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;");
-              console.log(title)
               let img = getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1]);
               let id = m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0];
               pp.push(`<div onclick="state[state.length]={page:'ep',id:'${id}',t:\`${title}\`,img:'${img}'};si=state.length-1;setTop();" class="clicky"><img src="${img}"><span>${title}</span></div>`);
@@ -139,10 +138,19 @@
     <b>Episodes</b>
     <br>
     ${future ? 'Next episode: '+new Date(future).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
-    ${JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>`<li onclick="ep('${state[si].id}', '${e[0]}', '${state[si].t}')" class="clicky">EP ${e[0]}</li>`).join('')}
+    ${JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e[0]}'};si=state.length-1;setTop();" class="clicky">EP ${e[0]}</li>`).join('')}
   </div>
 </div>`;
         })
+      }
+      function video() {
+        geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
+          .then(res=>{
+            window.parent.window.console.log(res)
+            let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
+            document.getElementById('results').innerHTML = videos.SUB.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')+`<br><div><iframe allowfullscreen></iframe></div><span style="display:flex"><button ${id==1?'disabled':`onclick="ep('${ser}','${Number(id)-1}', '${nom}')"`}>Prev</button><span style="flex:1"></span><button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button><span style="flex:1"></span><button onclick="ep('${ser}','${Number(id)+1}', '${nom}')">Next</button></span>`;
+            updateVid(videos.SUB[0].code);
+          })
       }
 
       var state = [{page:'search',q:'',n:1}];
@@ -161,6 +169,10 @@
             top.innerHTML += `${state[si].t}`;
             episodes();
             break;
+          case 'vid':
+            top.innerHTML += `${state[si].t} - ${state[si].e}`;
+            video();
+            break;
           default:
             alert(state[si].page);
             throw new Error('unknown '+state[si].page);
@@ -175,14 +187,6 @@
     </div>
     <div id="results"></div>
     <script>
-      function ep(ser, id, nom) {
-        geturl(`https://www3.animeflv.net/ver/${ser}-${id}`).then(res=>{
-          let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/g)[0].split(';')[0].split(' = ')[1]);
-          console.log(videos)
-          document.getElementById('results').innerHTML = nom.replaceAll('¬¬',"'")+' - '+id+'<br>'+videos.SUB.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')+`<br><div><iframe allowfullscreen></iframe></div><span style="display:flex"><button ${id==1?'disabled':`onclick="ep('${ser}','${Number(id)-1}', '${nom}')"`}>Prev</button><span style="flex:1"></span><button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button><span style="flex:1"></span><button onclick="ep('${ser}','${Number(id)+1}', '${nom}')">Next</button></span>`;
-          updateVid(videos.SUB[0].code);
-        })
-      }
       function updateVid(code) {
         document.querySelector('iframe').src = code;
       }
