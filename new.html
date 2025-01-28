@@ -118,6 +118,7 @@
             let pp = [];
             con.forEach(m => {
               let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;");
+              console.log(title)
               let img = getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1]);
               let id = m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0];
               pp.push(`<div onclick="state[state.length]={page:'ep',id:'${id}',t:\`${title}\`,img:'${img}'};si=state.length-1;setTop();" class="clicky"><img src="${img}"><span>${title}</span></div>`);
@@ -128,17 +129,17 @@
       function episodes() {
         geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
           .then(res=>{
-            let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split(';')[0].split(' = ')[1])[3];
+            let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3];
             document.getElementById('results').innerHTML = `<div class="anime">
   <div>
     <div class="stat">${res.match(/<p class="AnmStts A">/) ? 'Finished' : 'Ongoing'}</div>
     <img src="${state[si].img}">
   </div>
-  <div>
+  <div style="flex:1">
     <b>Episodes</b>
     <br>
     ${future ? 'Next episode: '+new Date(future).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
-    ${JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split(';')[0].split(' = ')[1]).map(e=>`<li onclick="ep('${state[si].id}', '${e[0]}', '${state[si].t}')" class="clicky">EP ${e[0]}</li>`).join('')}
+    ${JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>`<li onclick="ep('${state[si].id}', '${e[0]}', '${state[si].t}')" class="clicky">EP ${e[0]}</li>`).join('')}
   </div>
 </div>`;
         })
