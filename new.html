@@ -160,7 +160,19 @@
           .then(res=>{
             let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
             document.getElementById('results').innerHTML = videos.SUB
-            .map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')+`<br><div><iframe allowfullscreen></iframe></div>`/*<span style="display:flex"><button ${id==1?'disabled':`onclick="ep('${ser}','${Number(id)-1}', '${nom}')"`}>Prev</button><span style="flex:1"></span><button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button><span style="flex:1"></span><button onclick="ep('${ser}','${Number(id)+1}', '${nom}')">Next</button></span>`*/;
+              .map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`)
+              .join('');
+            document.getElementById('results').innerHTML += `<br>
+<div>
+  <iframe sandbox="allow-presentation	allow-scripts" allowfullscreen></iframe>
+</div>
+<span style="display:flex">
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${state[si].e-1}'};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
+  <span style="flex:1"></span>
+  <button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button>
+  <span style="flex:1"></span>
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${state[si].e+1}'};si=state.length-1;setTop();">Next</button>
+</span>`;
             updateVid(videos.SUB[0].code);
           })
       }
