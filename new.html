@@ -164,14 +164,14 @@
               .join('');
             document.getElementById('results').innerHTML += `<br>
 <div>
-  <iframe sandbox="allow-presentation	allow-scripts" allowfullscreen></iframe>
+  <iframe sandbox="allow-presentation	allow-scripts allow-downloads" allowfullscreen></iframe>
 </div>
 <span style="display:flex">
-  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${state[si].e-1}'};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e-1)}'};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
   <span style="flex:1"></span>
   <button onclick="download('${videos.SUB[0]?.url}', '${state[si].t}', '${state[si].id}')" style="display:none">Download</button>
   <span style="flex:1"></span>
-  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${state[si].e+1}'};si=state.length-1;setTop();">Next</button>
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e+1)}'};si=state.length-1;setTop();">Next</button>
 </span>`;
             updateVid(videos.SUB[0].code);
           })
