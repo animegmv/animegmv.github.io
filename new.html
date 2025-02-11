@@ -90,9 +90,42 @@
         padding: 2px;
         background-color: #333;
       }
+      #con {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        width: 100vw;
+        height: 100vh;
+        background: #111;
+      }
     </style>
   </head>
   <body>
+    <div id="con"><p>Connecting</p></div>
+    <script>
+      function fetchWithTimeout(url, options = {}, timeout = 2000) {
+        return Promise.race([
+          fetch(url, options),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), timeout)
+          )
+        ]);
+      }
+
+      fetchWithTimeout('https://api.fsh.plus/time')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('con').remove();
+        })
+        .catch(error => {
+          document.getElementById('con').innerHTML = '<p>Cannot connect</p>';
+        });
+    </script>
     <div id="top"></div>
     <script>
       console.clear();
