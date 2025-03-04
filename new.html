@@ -205,7 +205,7 @@
   <span style="flex:1"></span>
   <button onclick="download('${videos.SUB[0]?.url}', '${state[si].t}', '${state[si].id}')" style="display:none">Download</button>
   <span style="flex:1"></span>
-  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e+1)}'};si=state.length-1;setTop();">Next</button>
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e)+1}'};si=state.length-1;setTop();">Next</button>
 </span>`;
             updateVid(videos.SUB[0].code);
           })
