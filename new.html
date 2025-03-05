@@ -214,12 +214,12 @@
       var state = [{page:'search',q:'',n:1}];
       var si = 0;
       if (location.hash) {
-        state.push(JSON.parse(location.hash.slice(1)));
+        state.push(JSON.parse(decodeURIComponent(location.hash.slice(1))));
         si += 1;
       }
 
       function setTop() {
-        history.pushState(null, null, '#'+JSON.stringify(state.slice(-1)[0]));
+        if (si>0) history.replaceState(null, null, '#'+JSON.stringify(state.slice(-1)[0]));
         let top = document.getElementById('top');
         top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
         switch (state[si].page) {
