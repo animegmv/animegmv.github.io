@@ -160,6 +160,15 @@
         document.querySelector('iframe').src = code;
       }
 
+      function showSearch(con) {
+        document.getElementById('results').innerHTML = `<p>${con.length} results</p>
+${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1}};si=state.length-1;setTop();">Prev</button>`:''}
+${state[si].n>1?state[si].n:''}
+${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1}};si=state.length-1;setTop();">Next</button>`:''}
+<div class="wrap">
+  ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}'};si=state.length-1;setTop();" class="clicky"><img src="${m.img}"><span>${m.title}</span></div>`).join('')}
+</div>`;
+      }
       function search() {
         if (state[si].q==='doom') location.href='/doom';
         geturl(`https://www3.animeflv.net/browse?page=${state[si].n}&q=${state[si].q}`)
@@ -240,7 +249,6 @@
   <option value="1" disabled>aniwatchtv.to</option>
   <option value="2" disabled>hianime.to</option>
   <option value="3" disabled>jkanime.net</option>
-  aniwatchtv
 </select>`;
             search();
             break;
