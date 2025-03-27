@@ -12,6 +12,10 @@
         background: black;
         font-family: Arial;
       }
+      p {
+        margin: 6px 0px;
+        width: fit-content;
+      }
       input, button {
         color: white;
         background: #222;
@@ -33,9 +37,13 @@
       }
       .clicky {
         cursor: pointer;
+        border-radius: 0.25rem;
       }
       .clicky:hover {
         background: #222;
+      }
+      #top {
+        width: fit-content;
       }
       div:has(>iframe) {
         display: flex;
@@ -48,59 +56,194 @@
         border: 1px #444 solid;
         box-sizing: border-box;
       }
+      .wrap {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        max-width: 1000px;
+      }
+      .wrap div {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 calc(20% - (4 * 1em) / 5);
+      }
+      .wrap div img {
+        width: 100%;
+        border-radius: 0.25rem;
+      }
+      .wrap div span {
+        height: 3.50em;
+        font-size: 75%;
+      }
+      .anime {
+        display: flex;
+        gap: 1em;
+      }
+      .anime > div {
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+      .stat {
+        display: flex;
+        justify-content: center;
+        padding: 2px;
+        background-color: #333;
+      }
+      #con {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        width: 100vw;
+        height: 100vh;
+        background: #111;
+      }
     </style>
   </head>
   <body>
-    <div>
-      <input type="search" id="buswa" onkeyup="if(event.key=='Enter'){search()}">
-      <button onclick="search()">Search</button>
-    </div>
-    <div id="results"></div>
+    <div id="con"><p>Connecting</p></div>
+    <script>
+      function fetchWithTimeout(url, options = {}, timeout = 2000) {
+        return Promise.race([
+          fetch(url, options),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), timeout)
+          )
+        ]);
+      }
+
+      fetchWithTimeout('https://api.fsh.plus/time')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('con').remove();
+        })
+        .catch(error => {
+          document.getElementById('con').innerHTML = '<p>Cannot connect</p>';
+        });
+    </script>
+    <div id="top"></div>
     <script>
       console.clear();
       function geturl(url) {
         return new Promise((resolve, reject) => {
-          fetch('https://api.fsh.plus/html?url='+encodeURIComponent(url))
+          fetch(`https://api.fsh.plus/html?url=${encodeURIComponent(url)}`)
             .then(res=>res.text())
             .then(res=>resolve(res));
         })
       }
-      function search() {
-        geturl(`https://www3.animeflv.net/browse?q=${document.getElementById('buswa').value}`).then(res=>{
-          let con = res.match(/<!--<Animes>-->[^¬]*?<!--<\/Animes>-->/g)[0].match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? [];
-          document.getElementById('results').innerHTML = `<p>${con.length} results</p>`;
-          Array.from(con).forEach(m => {
-            let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0];
-            document.getElementById('results').innerHTML += `<li onclick="view('${m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0]}', '${title}')" class="clicky">${title}</li>`;
-          })
-        })
+      function getImgUrl(url) {
+        return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`
       }
-      function view(id, nom) {
-        geturl(`https://www3.animeflv.net/anime/${id}`).then(res=>{
-          document.getElementById('results').innerHTML = `<p>Episodes</p>
-${JSON.parse(res.match(/var episodes = \[.*?\];/g)[0].split(';')[0].split(' = ')[1]).map(e=>`<li onclick="ep('${id}', '${e[0]}', '${nom}')" class="clicky">EP ${e[0]}</li>`).join('')}`;
-        })
-      }
-      function ep(ser, id, nom) {
-        geturl(`https://www3.animeflv.net/ver/${ser}-${id}`).then(res=>{
-          let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/g)[0].split(';')[0].split(' = ')[1]);
-          console.log(videos)
-          document.getElementById('results').innerHTML = nom+' - '+id+'<br>'+videos.SUB.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')+`<br><div><iframe allowfullscreen></iframe></div><span style="display:flex"><button ${id==1?'disabled':`onclick="ep('${ser}','${Number(id)-1}', '${nom}')"`}>Prev</button><span style="flex:1"></span><button onclick="download('${videos.SUB[0].url}', '${nom}', '${id}')" style="display:none">Download</button><span style="flex:1"></span><button onclick="ep('${ser}','${Number(id)+1}', '${nom}')">Next</button></span>`;
-          updateVid(videos.SUB[0].code);
-        })
-      }
-      function updateVid(code) {
-        document.querySelector('iframe').src = code;
-      }
-      function download(url, nom, id) {
+      function download(url, name, id) {
         let a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = nom+' - '+id+'.mp4';
+        a.download = `${name} - ${id}.mp4`;
         document.body.appendChild(a);
         a.click();
         a.remove();
       }
+      function updateVid(code) {
+        document.querySelector('iframe').src = code;
+      }
+
+      function search() {
+        if (state[si].q==='doom') location.href='/doom';
+        geturl(`https://www3.animeflv.net/browse?page=${state[si].n}&q=${state[si].q}`)
+          .then(res=>{
+            let con = Array.from(res
+              .match(/<!--<Animes>-->[^¬]*?<!--<\/Animes>-->/g)[0]
+              .match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? []);
+            document.getElementById('results').innerHTML = `<p>${con.length} results</p>${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1}};si=state.length-1;setTop();">Prev</button>`:''}${state[si].n>1||con.length>23?state[si].n:''}${con.length>23?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1}};si=state.length-1;setTop();">Next</button>`:''}`;
+            let pp = [];
+            con.forEach(m => {
+              let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;");
+              let img = getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1]);
+              let id = m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0];
+              pp.push(`<div onclick="state[state.length]={page:'ep',id:'${id}',t:\`${title}\`,img:'${img}'};si=state.length-1;setTop();" class="clicky"><img src="${img}"><span>${title}</span></div>`);
+            })
+            document.getElementById('results').innerHTML += `<div class="wrap">${pp.join('')}</div>`;
+          })
+      }
+      function episodes() {
+        geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
+          .then(res=>{
+            let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3];
+            document.getElementById('results').innerHTML = `<div class="anime">
+  <div>
+    <div class="stat">${res.match(/<p class="AnmStts A">/) ? 'Finished' : 'Ongoing'}</div>
+    <img src="${state[si].img}">
+  </div>
+  <div style="flex:1">
+    <b>Episodes</b>
+    <br>
+    ${future ? 'Next episode: '+new Date(future).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
+    ${JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e[0]}'};si=state.length-1;setTop();" class="clicky">EP ${e[0]}</li>`).join('')}
+  </div>
+</div>`;
+        })
+      }
+      function video() {
+        geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
+          .then(res=>{
+            let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
+            document.getElementById('results').innerHTML = videos.SUB
+              .map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`)
+              .join('');
+            //  sandbox="allow-presentation	allow-scripts allow-downloads"
+            document.getElementById('results').innerHTML += `<br>
+<div>
+  <iframe allowfullscreen></iframe>
+</div>
+<span style="display:flex">
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e-1)}'};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
+  <span style="flex:1"></span>
+  <button onclick="download('${videos.SUB[0]?.url}', '${state[si].t}', '${state[si].id}')" style="display:none">Download</button>
+  <span style="flex:1"></span>
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e)+1}'};si=state.length-1;setTop();">Next</button>
+</span>`;
+            updateVid(videos.SUB[0].code);
+          })
+      }
+
+      var state = [{page:'search',q:'',n:1}];
+      var si = 0;
+      if (location.hash) {
+        state.push(JSON.parse(decodeURIComponent(location.hash.slice(1))));
+        si += 1;
+      }
+
+      function setTop() {
+        if (si>0) history.replaceState(null, null, '#'+JSON.stringify(state.slice(-1)[0]));
+        let top = document.getElementById('top');
+        top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
+        switch (state[si].page) {
+          case 'search':
+            top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter'){state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1};si=state.length-1;setTop();}" value="${state[si].q}">
+<button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1};si=state.length-1;setTop();">Search</button>`;
+            search();
+            break;
+          case 'ep':
+            top.innerHTML += `${state[si].t}`;
+            episodes();
+            break;
+          case 'vid':
+            top.innerHTML += `${state[si].t} - ${state[si].e}`;
+            video();
+            break;
+          default:
+            alert(state[si].page);
+            throw new Error('unknown '+state[si].page);
+        }
+      }
+
+      setTop();
     </script>
+    <div id="results"></div>
   </body>
 </html>
