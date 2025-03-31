@@ -199,7 +199,7 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
                 let con = Array.from(doc.querySelector('div.film_list-wrap').querySelectorAll('div.flw-item'))
                   .map(m => {
                     let title = m.querySelector('h3.film-name a').innerText.replaceAll("'","&#39;");
-                    let img = getImgUrl(m.querySelector('img.film-poster-img').src);
+                    let img = getImgUrl(m.querySelector('img.film-poster-img').getAttribute('data-src'));
                     let id = m.querySelector('h3.film-name a').href.split('/')[1].split('?')[0];
                     return { id, title, img };
                   });
