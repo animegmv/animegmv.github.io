@@ -187,23 +187,22 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
                     let id = m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0];
                     return { id, title, img };
                   });
-                showSearch(pp);
+                showSearch(con);
               })
             break;
           case 1:
           case 2://page=${page}
-            geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/search?keyword=${quer}`)
+            geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/search?page=${page}&keyword=${quer}`)
               .then(res=>{
                 let con = Array.from(res
-                  .match(/<!--<Animes>-->[^¬]*?<!--<\/Animes>-->/g)[0]
-                  .match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? [])
+                  .match(/<div class="flw-item">[^¬]*?<\/div>/g) ?? [])
                   .map(m => {
                     let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;");
                     let img = getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1]);
                     let id = m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0];
                     return { id, title, img };
                   });
-                showSearch(pp);
+                showSearch(con);
               })
             break;
         }
