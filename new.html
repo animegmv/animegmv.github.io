@@ -194,12 +194,13 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
           case 2://page=${page}
             geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/search?page=${page}&keyword=${quer}`)
               .then(res=>{
-                let con = Array.from(res
-                  .match(/<div class="flw-item">[^¬]*?<\/div>/g) ?? [])
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(res, 'text/html');
+                let con = Array.from(doc.querySelector('div.film_list-wrap').querySelectorAll('div.flw-item'))
                   .map(m => {
-                    let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;");
-                    let img = getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1]);
-                    let id = m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0];
+                    let title = m.querySelector('h3.film-name a').innerText.replaceAll("'","&#39;");
+                    let img = getImgUrl(m.querySelector('img.film-poster-img').src);
+                    let id = m.querySelector('h3.film-name a').href.split('/')[1].split('?')[0];
                     return { id, title, img };
                   });
                 showSearch(con);
@@ -257,6 +258,7 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
 
       function setTop() {
         if (si>0) history.replaceState(null, null, '#'+JSON.stringify(state.slice(-1)[0]));
+        let prov = document.getElementById('provider')?.value??0;
         let top = document.getElementById('top');
         top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
         switch (state[si].page) {
@@ -266,10 +268,13 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
 <span style="flex:1"></span>
 <select id="provider">
   <option value="0">animeflv.net</option>
-  <option value="1" disabled>aniwatchtv.to</option>
-  <option value="2" disabled>hianime.to</option>
+  <option value="1">aniwatchtv.to</option>
+  <option value="2">hianime.to</option>
   <option value="3" disabled>jkanime.net</option>
+  <option value="4" disabled>dopebox.to</option>
+  <option value="5" disabled>animeonline.ninja</option>
 </select>`;
+            document.getElementById('provider').value = prov;
             search();
             break;
           case 'ep':
