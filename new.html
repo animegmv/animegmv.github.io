@@ -276,6 +276,7 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
   <option value="5" disabled>animeonline.ninja</option>
 </select>`;
             document.getElementById('provider').value = prov;
+            document.getElementById('provider').onchange = ()=>{search()};
             search();
             break;
           case 'ep':
