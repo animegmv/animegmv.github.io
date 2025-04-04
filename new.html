@@ -250,7 +250,7 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
           })
       }
 
-      var state = [{page:'search',q:'',n:1}];
+      var state = [{page:'search',q:'',n:1,provider:0}];
       var si = 0;
       if (location.hash) {
         state.push(JSON.parse(decodeURIComponent(location.hash.slice(1))));
@@ -259,13 +259,13 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
 
       function setTop() {
         if (si>0) history.replaceState(null, null, '#'+JSON.stringify(state.slice(-1)[0]));
-        let prov = document.getElementById('provider')?.value??0;
+        let prov = document.getElementById('provider')?.value??(state[si].provider??0);
         let top = document.getElementById('top');
         top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
         switch (state[si].page) {
           case 'search':
-            top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter'){state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1};si=state.length-1;setTop();}" value="${state[si].q}">
-<button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1};si=state.length-1;setTop();">Search</button>
+            top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter'){state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();}" value="${state[si].q}">
+<button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();">Search</button>
 <span style="flex:1"></span>
 <select id="provider">
   <option value="0">animeflv.net</option>
@@ -275,8 +275,13 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
   <option value="4" disabled>dopebox.to</option>
   <option value="5" disabled>animeonline.ninja</option>
 </select>`;
-            document.getElementById('provider').value = prov;
-            document.getElementById('provider').onchange = ()=>{search()};
+            document.getElementById('provider').value = state[si].provider;
+            document.getElementById('provider').onchange = (evt)=>{
+              state[state.length] = state[si];
+              si=state.length-1;
+              state[si].provider = Number(evt.target.value)??0;
+              setTop();
+            };
             search();
             break;
           case 'ep':
