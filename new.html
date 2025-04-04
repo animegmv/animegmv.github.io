@@ -16,7 +16,7 @@
         margin: 6px 0px;
         width: fit-content;
       }
-      input, button {
+      input, button, select {
         color: white;
         background: #222;
         margin: 2px;
@@ -35,8 +35,9 @@
         background: #111;
         cursor: not-allowed;
       }
-      select, ::picker(select) {
-        appearance: base-select;
+      select{
+        padding: 1px;
+        border-radius: 0.25rem;
       }
       .clicky {
         cursor: pointer;
@@ -191,7 +192,7 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
               })
             break;
           case 1:
-          case 2://page=${page}
+          case 2:
             geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/search?page=${page}&keyword=${quer}`)
               .then(res=>{
                 const parser = new DOMParser();
