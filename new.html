@@ -210,6 +210,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
         }
       }
       function showEpisodes(res) {
+        let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3];
         document.getElementById('results').innerHTML = `<div class="anime">
   <div>
     <div class="stat">${res.match(/<p class="AnmStts A">/) ? 'Finished' : 'Ongoing'}</div>
@@ -228,7 +229,6 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
           case 0:
             geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
               .then(res=>{
-                let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3];
                 showEpisodes(res);
               })
             break;
@@ -242,7 +242,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
               })
             break;
         }
-        cats-tea-17956
+        //cats-tea-17956
       }
       function video() {
         geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
