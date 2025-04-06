@@ -163,9 +163,9 @@
 
       function showSearch(con) {
         document.getElementById('results').innerHTML = `<p>${con.length} results</p>
-${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1}};si=state.length-1;setTop();">Prev</button>`:''}
+${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1}};si=state.length-1;setTop();">Next</button>`:''}
+${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}'};si=state.length-1;setTop();" class="clicky"><img src="${m.img}"><span>${m.title}</span></div>`).join('')}
 </div>`;
@@ -193,7 +193,7 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
             break;
           case 1:
           case 2:
-            geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/search?page=${page}&keyword=${quer}`)
+            geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${quer===''?'recently-updated':'search'}?page=${page}&keyword=${quer}`)
               .then(res=>{
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(res, 'text/html');
@@ -279,6 +279,7 @@ ${con.length>[23,35,35,11][Number(document.getElementById('provider').value)]?`<
             document.getElementById('provider').onchange = (evt)=>{
               state[state.length] = state[si];
               si=state.length-1;
+              state[si].n = 1;
               state[si].provider = Number(evt.target.value)??0;
               setTop();
             };
