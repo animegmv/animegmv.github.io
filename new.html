@@ -174,7 +174,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
         if (state[si].q==='doom') location.href='/doom';
         let page = state[si].n;
         let quer = state[si].q;
-        let provider = Number(document.getElementById('provider').value)??0;
+        let provider = state[si].provider??0;
         switch (provider) {
           case 0:
             geturl(`https://www3.animeflv.net/browse?page=${page}&q=${quer}`)
@@ -201,7 +201,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
                   .map(m => {
                     let title = m.querySelector('h3.film-name a').innerText.replaceAll("'","&#39;");
                     let img = getImgUrl(m.querySelector('img.film-poster-img').getAttribute('data-src'));
-                    let id = m.querySelector('h3.film-name a').href.split('/')[1].split('?')[0];
+                    let id = m.querySelector('h3.film-name a').href.split('/')[3].split('?')[0];
                     return { id, title, img };
                   });
                 showSearch(con);
@@ -209,11 +209,8 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
             break;
         }
       }
-      function episodes() {
-        geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
-          .then(res=>{
-            let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3];
-            document.getElementById('results').innerHTML = `<div class="anime">
+      function showEpisodes(res) {
+        document.getElementById('results').innerHTML = `<div class="anime">
   <div>
     <div class="stat">${res.match(/<p class="AnmStts A">/) ? 'Finished' : 'Ongoing'}</div>
     <img src="${state[si].img}">
@@ -225,7 +222,27 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
     ${JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e[0]}'};si=state.length-1;setTop();" class="clicky">EP ${e[0]}</li>`).join('')}
   </div>
 </div>`;
-        })
+      }
+      function episodes() {
+        switch (state[si].provider??0) {
+          case 0:
+            geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
+              .then(res=>{
+                let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3];
+                showEpisodes(res);
+              })
+            break;
+          case 1:
+          case 2:
+            geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${state[si].id}`)
+              .then(res=>{
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(res, 'text/html');
+                // .anisc-info .item:nth-child(6) .name  onair/no
+              })
+            break;
+        }
+        cats-tea-17956
       }
       function video() {
         geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
