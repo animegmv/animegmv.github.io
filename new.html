@@ -35,7 +35,7 @@
         background: #111;
         cursor: not-allowed;
       }
-      select{
+      select {
         padding: 1px;
         border-radius: 0.25rem;
       }
@@ -224,7 +224,8 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
 </div>`;
       }
       function episodes() {
-        switch (state[si].provider??0) {
+        let provider = state[si].provider??0;
+        switch (provider) {
           case 0:
             geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
               .then(res=>{
@@ -241,12 +242,17 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
               .then(res=>{
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(res, 'text/html');
-                console.log(doc);
-                showEpisodes({
-                  finished: doc.querySelector('.anisc-info .item:nth-child(6) .name'),
-                  next: '',
-                  eps: []
-                })
+                geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/watch/${state[si].id}`)
+                  .then(res2=>{
+                    const parser2 = new DOMParser();
+                    const doc2 = parser2.parseFromString(res2, 'text/html');
+                    window.doc2 = doc2
+                    showEpisodes({
+                      finished: doc.querySelector('.anisc-info .item:nth-child(6) .name').innerText==='Finished Airing',
+                      next: '',
+                      eps: []
+                    })
+                  })
               })
             break;
         }
