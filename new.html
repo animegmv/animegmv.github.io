@@ -183,10 +183,11 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
                   .match(/<!--<Animes>-->[^¬]*?<!--<\/Animes>-->/g)[0]
                   .match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? [])
                   .map(m => {
-                    let title = m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;");
-                    let img = getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1]);
-                    let id = m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0];
-                    return { id, title, img };
+                    return {
+                      id: m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0],
+                      title: m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;"),
+                      img: getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1])
+                    };
                   });
                 showSearch(con);
               })
@@ -199,10 +200,11 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
                 const doc = parser.parseFromString(res, 'text/html');
                 let con = Array.from(doc.querySelector('div.film_list-wrap').querySelectorAll('div.flw-item'))
                   .map(m => {
-                    let title = m.querySelector('h3.film-name a').innerText.replaceAll("'","&#39;");
-                    let img = getImgUrl(m.querySelector('img.film-poster-img').getAttribute('data-src'));
-                    let id = m.querySelector('h3.film-name a').href.split('/')[3].split('?')[0];
-                    return { id, title, img };
+                    return {
+                      id: m.querySelector('h3.film-name a').href.split('/')[3].split('?')[0],
+                      title: m.querySelector('h3.film-name a').innerText.replaceAll("'","&#39;"),
+                      img: getImgUrl(m.querySelector('img.film-poster-img').getAttribute('data-src'))
+                    };
                   });
                 showSearch(con);
               })
@@ -219,7 +221,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
     <b>Episodes</b>
     <br>
     ${res.next ? 'Next episode: '+new Date(res.next).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
-    ${res.eps.map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e.n}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">EP ${e.n}</li>`).join('')}
+    ${res.eps.map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e.n}',eid:'${e.id}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">EP ${e.n}</li>`).join('')}
   </div>
 </div>`;
       }
@@ -232,7 +234,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
                 showEpisodes({
                   finished: res.match(/<p class="AnmStts A">/),
                   next: JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3],
-                  eps: JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>{return {n:e[0]}})
+                  eps: JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>{return { id: e[0], n: e[0] }})
                 });
               })
             break;
@@ -241,16 +243,20 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
             geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${state[si].id}`)
               .then(res=>{
                 const parser = new DOMParser();
-                const doc = parser.parseFromString(res, 'text/html');
+                let doc = parser.parseFromString(res, 'text/html');
+                let finished = (doc.querySelector('.anisc-info .item:nth-child(6) .name').innerText==='Finished Airing');
                 geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/watch/${state[si].id}`)
+                  //https://hianimez.to/ajax/v2/episode/list/3096
+                  //https://hianimez.to/ajax/v2/episode/servers?episodeId=58122
+                  //https://hianimez.to/ajax/v2/episode/sources?id=31995
+                  // ^ Firefox for devtools
                   .then(res2=>{
-                    const parser2 = new DOMParser();
-                    const doc2 = parser2.parseFromString(res2, 'text/html');
-                    window.doc2 = doc2
+                    let doc = parser.parseFromString(res2, 'text/html');
+                    window.doc = doc
                     showEpisodes({
-                      finished: doc.querySelector('.anisc-info .item:nth-child(6) .name').innerText==='Finished Airing',
+                      finished: finished,
                       next: '',
-                      eps: []
+                      eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }})
                     })
                   })
               })
