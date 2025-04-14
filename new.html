@@ -219,7 +219,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
     <b>Episodes</b>
     <br>
     ${res.next ? 'Next episode: '+new Date(res.next).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
-    ${JSON.parse(res.eps.map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e.n}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">EP ${e.n}</li>`).join('')}
+    ${res.eps.map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e.n}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">EP ${e.n}</li>`).join('')}
   </div>
 </div>`;
       }
@@ -231,7 +231,7 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
                 showEpisodes({
                   finished: res.match(/<p class="AnmStts A">/),
                   next: JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3],
-                  eps: res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>{n:e[0]})
+                  eps: JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>{n:e[0]})
                 });
               })
             break;
