@@ -210,17 +210,17 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
         }
       }
       function showEpisodes(res) {
-        let future = JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3];
+        let future = ;
         document.getElementById('results').innerHTML = `<div class="anime">
   <div>
-    <div class="stat">${res.match(/<p class="AnmStts A">/) ? 'Finished' : 'Ongoing'}</div>
+    <div class="stat">${res.finished ? 'Finished' : 'Ongoing'}</div>
     <img src="${state[si].img}">
   </div>
   <div style="flex:1">
     <b>Episodes</b>
     <br>
-    ${future ? 'Next episode: '+new Date(future).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
-    ${JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e[0]}'};si=state.length-1;setTop();" class="clicky">EP ${e[0]}</li>`).join('')}
+    ${res.next ? 'Next episode: '+new Date(res.next).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
+    ${JSON.parse(res.eps.map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e.n}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">EP ${e.n}</li>`).join('')}
   </div>
 </div>`;
       }
@@ -229,7 +229,11 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
           case 0:
             geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
               .then(res=>{
-                showEpisodes(res);
+                showEpisodes({
+                  finished: res.match(/<p class="AnmStts A">/),
+                  next: JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3],
+                  eps: res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>{n:e[0]})
+                });
               })
             break;
           case 1:
@@ -238,7 +242,12 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
               .then(res=>{
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(res, 'text/html');
-                // .anisc-info .item:nth-child(6) .name  onair/no
+                console.log(doc);
+                showEpisodes({
+                  finished: doc.querySelector('.anisc-info .item:nth-child(6) .name'),
+                  next: '',
+                  eps: []
+                })
               })
             break;
         }
