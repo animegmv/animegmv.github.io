@@ -234,29 +234,25 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
           case 2:
             geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${state[si].id}`)
               .then(res=>{
-                const parser = new DOMParser();
-                let doc = parser.parseFromString(res, 'text/html');
-                let finished = (doc.querySelector('.anisc-info .item:nth-child(6) .name').innerText==='Finished Airing');
+                let finished = (Array.from(res.matchAll(/<span class="name">(Finished Airing|Currently Airing)<\/span>/g))[0][1]==='Finished Airing');
                 geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
-                  //https://hianimez.to/ajax/v2/episode/list/3096
-                  //https://hianimez.to/ajax/v2/episode/servers?episodeId=58122
-                  //https://hianimez.to/ajax/v2/episode/sources?id=31995
-                  // ^ Firefox for devtools
                   .then(res2=>{
-                    const parser2 = new DOMParser();
-                    let doc2 = parser2.parseFromString(JSON.parse(res2).html, 'text/html');
-                    window.doc2 = doc2;
+                    const parser = new DOMParser();
+                    let doc = parser.parseFromString(JSON.parse(res2).html, 'text/html');
                     showEpisodes({
                       finished: finished,
                       next: '',
-                      eps: Array.from(doc2.querySelectorAll('.ss-list .ssl-item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }})
+                      eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }}).reverse()
                     })
-                  })
-              })
+                  });
+              });
             break;
         }
-        //cats-tea-17956
       }
+      //https://hianimez.to/ajax/v2/episode/servers?episodeId=58122
+      //https://hianimez.to/ajax/v2/episode/sources?id=31995
+      // ^ Firefox for devtools
+      //cats-tea-17956
       function video() {
         geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
           .then(res=>{
