@@ -49,6 +49,7 @@
       #top {
         display: flex;
         gap: 5px;
+        align-items: center;
       }
       #top input {
         margin: 0px;
@@ -118,16 +119,7 @@
   <body>
     <div id="con"><p>Connecting</p></div>
     <script>
-      function fetchWithTimeout(url, options = {}, timeout = 2000) {
-        return Promise.race([
-          fetch(url, options),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), timeout)
-          )
-        ]);
-      }
-
-      fetchWithTimeout('https://api.fsh.plus/time')
+      fetch('https://api.fsh.plus/time', { signal: AbortSignal.timeout(2500) })
         .then(response => response.json())
         .then(data => {
           document.getElementById('con').remove();
@@ -245,18 +237,19 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
                 const parser = new DOMParser();
                 let doc = parser.parseFromString(res, 'text/html');
                 let finished = (doc.querySelector('.anisc-info .item:nth-child(6) .name').innerText==='Finished Airing');
-                geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/watch/${state[si].id}`)
+                geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
                   //https://hianimez.to/ajax/v2/episode/list/3096
                   //https://hianimez.to/ajax/v2/episode/servers?episodeId=58122
                   //https://hianimez.to/ajax/v2/episode/sources?id=31995
                   // ^ Firefox for devtools
                   .then(res2=>{
-                    let doc = parser.parseFromString(res2, 'text/html');
-                    window.doc = doc
+                    const parser2 = new DOMParser();
+                    let doc2 = parser2.parseFromString(JSON.parse(res2).html, 'text/html');
+                    window.doc2 = doc2;
                     showEpisodes({
                       finished: finished,
                       next: '',
-                      eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }})
+                      eps: Array.from(doc2.querySelectorAll('.ss-list .ssl-item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }})
                     })
                   })
               })
