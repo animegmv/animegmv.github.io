@@ -254,10 +254,9 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
       // ^ Firefox for devtools
       //cats-tea-17956
       function showVideo(videos) {
-        document.getElementById('results').innerHTML = videos
-          .map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`)
-          .join('');
-        document.getElementById('results').innerHTML += `<br>
+        //  sandbox="allow-presentation	allow-scripts allow-downloads"
+        document.getElementById('results').innerHTML = `${videos.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')}
+<br>
 <div>
   <iframe allowfullscreen></iframe>
 </div>
@@ -270,13 +269,34 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
 </span>`;
       }
       function video() {
-        geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
-          .then(res=>{
-            let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
-            //  sandbox="allow-presentation	allow-scripts allow-downloads"
-            showVideo(videos.SUB);
-            updateVid(videos.SUB[0].code);
-          })
+        let provider = state[si].provider??0;
+        switch (provider) {
+          case 0:
+            geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
+              .then(res=>{
+                let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
+                showVideo(videos.SUB);
+                updateVid(videos.SUB[0].code);
+              })
+            break;
+          case 1:
+          case 2:/*
+            geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${state[si].id}`)
+              .then(res=>{
+                let finished = (Array.from(res.matchAll(/<span class="name">(Finished Airing|Currently Airing)<\/span>/g))[0][1]==='Finished Airing');
+                geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
+                  .then(res2=>{
+                    const parser = new DOMParser();
+                    let doc = parser.parseFromString(JSON.parse(res2).html, 'text/html');
+                    showEpisodes({
+                      finished: finished,
+                      next: '',
+                      eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }}).reverse()
+                    })
+                  });
+              });*/
+            break;
+        }
       }
 
       var state = [{page:'search',q:'',n:1,provider:0}];
