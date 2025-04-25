@@ -253,25 +253,28 @@ ${con.length>[23,35,35,11][state[si].provider]?`<button onclick="state[state.len
       //https://hianimez.to/ajax/v2/episode/sources?id=31995
       // ^ Firefox for devtools
       //cats-tea-17956
-      function video() {
-        geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
-          .then(res=>{
-            let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
-            document.getElementById('results').innerHTML = videos.SUB
-              .map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`)
-              .join('');
-            //  sandbox="allow-presentation	allow-scripts allow-downloads"
-            document.getElementById('results').innerHTML += `<br>
+      function showVideo(videos) {
+        document.getElementById('results').innerHTML = videos
+          .map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`)
+          .join('');
+        document.getElementById('results').innerHTML += `<br>
 <div>
   <iframe allowfullscreen></iframe>
 </div>
 <span style="display:flex">
-  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e-1)}'};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e-1)}',provider:state[si].provider};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
   <span style="flex:1"></span>
-  <button onclick="download('${videos.SUB[0]?.url}', '${state[si].t}', '${state[si].id}')" style="display:none">Download</button>
+  <button onclick="download('${videos[0]?.url}', '${state[si].t}', '${state[si].id}')" style="display:none">Download</button>
   <span style="flex:1"></span>
-  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e)+1}'};si=state.length-1;setTop();">Next</button>
+  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e)+1}',provider:state[si].provider};si=state.length-1;setTop();">Next</button>
 </span>`;
+      }
+      function video() {
+        geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
+          .then(res=>{
+            let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
+            //  sandbox="allow-presentation	allow-scripts allow-downloads"
+            showVideo(videos.SUB);
             updateVid(videos.SUB[0].code);
           })
       }
