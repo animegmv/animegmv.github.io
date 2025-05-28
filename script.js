@@ -149,16 +149,16 @@ function video() {
       break;
     case 1:
     case 2:
-      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/servers?episodeId=${state[si].id}`)
+      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
         .then(res=>{
           const parser = new DOMParser();
           let doc = parser.parseFromString(JSON.parse(res).html, 'text/html');
           let videos = Array.from(doc.querySelectorAll('div.item.server-item'))
             .map(v => {
               return {
-                title: v.getAttribute('data-server-id'),
+                title: 'Server '+v.getAttribute('data-server-id'),
                 ads: false,
-                code: '1204572'
+                code: v.getAttribute('data-id')
               }
             });
 /*
