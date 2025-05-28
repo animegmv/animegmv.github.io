@@ -148,21 +148,23 @@ function video() {
         })
       break;
     case 1:
-    case 2:/*
-      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${state[si].id}`)
+    case 2:
+      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/servers?episodeId=${state[si].id}`)
         .then(res=>{
-          let finished = (Array.from(res.matchAll(/<span class="name">(Finished Airing|Currently Airing)<\/span>/g))[0][1]==='Finished Airing');
-          geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
-            .then(res2=>{
-              const parser = new DOMParser();
-              let doc = parser.parseFromString(JSON.parse(res2).html, 'text/html');
-              showEpisodes({
-                finished: finished,
-                next: '',
-                eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }}).reverse()
-              })
+          const parser = new DOMParser();
+          let doc = parser.parseFromString(JSON.parse(res).html, 'text/html');
+          let videos = Array.from(doc.querySelectorAll('div.item.server-item'))
+            .map(v => {
+              return {
+                title: v.getAttribute('data-server-id'),
+                ads: false,
+                code: '1204572'
+              }
             });
-        });*/
+/*
+<div class=\"ps_-block ps_-block-sub servers-sub\"><div class=\"ps__-title\"><i class=\"fas fa-closed-captioning mr-2\"></i>SUB:</div>\n        \n        \n        \n        \n        <div class=\"ps__-list\">\n            \n                \n                    <a href=\"javascript:;\" class=\"btn\">HD-3</a>\n                </div>\n            \n                <div class=\"item server-item\" data-type=\"sub\" data-id=\"610646\"\n                     data-server-id=\"4\">\n                    <a href=\"javascript:;\" class=\"btn\">HD-1</a>\n                </div>\n            \n                <div class=\"item server-item\" data-type=\"sub\" data-id=\"31995\"\n                     data-server-id=\"1\">\n                    <a href=\"javascript:;\" class=\"btn\">HD-2</a>\n                </div>\n            \n        </div>\n        <div class=\"clearfix\"></div>\n        \n    </div>\n\n
+*/
+        });
       break;
   }
 }
