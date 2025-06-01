@@ -22,7 +22,7 @@ function showSearch(con) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
 ${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${con.length>[23,35,35,29,19][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
+${con.length>[23,35,35,29,999][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}"><span>${m.title}</span></div>`).join('')}
 </div>`;
@@ -68,22 +68,20 @@ function search() {
         })
       break;
     case 4:
-      if (quer==='') {
-        geturl(`https://jkanime.net/${quer===''?'':'search'}/${quer}?page=${page}`)
-          .then(res=>{
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(res, 'text/html');
-            let con = Array.from(doc.querySelector('div.tab-content').querySelectorAll('div.card'))
-              .map(m => {
-                return {
-                  id: m.querySelector('a').href.split('/')[3],
-                  title: m.querySelector('h5.card-title').innerText.replaceAll("'","&#39;"),
-                  img: getImgUrl(m.querySelector('img.card-img-top').src)
-                };
-              });
-            showSearch(con);
-          })
-      }
+      geturl(`https://jkanime.net/${quer===''?'':'buscar'}/${quer}?page=${page}`)
+        .then(res=>{
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(res, 'text/html');
+          let con = Array.from(doc.querySelector('div.tab-content, div.page_directorio').querySelectorAll('div.card, div.anime__item'))
+            .map(m => {
+              return {
+                id: m.querySelector('a').href.split('/')[3],
+                title: m.querySelector('h5 a, h5.card-title').innerText.replaceAll("'","&#39;"),
+                img: m.querySelector('div.anime__item__pic.set-bg')?getImgUrl(m.querySelector('div.anime__item__pic.set-bg').getAttribute('data-setbg')):getImgUrl(m.querySelector('img.card-img-top').src)
+              };
+            });
+          showSearch(con);
+        })
       break;
   }
 }
