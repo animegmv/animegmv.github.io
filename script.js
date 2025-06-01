@@ -51,7 +51,8 @@ function search() {
       break;
     case 1:
     case 2:
-      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${quer===''?'recently-updated':'search'}?page=${page}&keyword=${quer}`)
+    case 3:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/${quer===''?'recently-updated':'search'}?page=${page}&keyword=${quer}`)
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
@@ -97,7 +98,8 @@ function episodes() {
       break;
     case 1:
     case 2:
-      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/${state[si].id}`)
+    case 3:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/${state[si].id}`)
         .then(res=>{
           let finished = (Array.from(res.matchAll(/<span class="name">(Finished Airing|Currently Airing)<\/span>/g))[0][1]==='Finished Airing');
           geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
@@ -123,7 +125,8 @@ function updateVid(code, provider) {
       break;
     case 1:
     case 2:
-      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/sources?id=${code}`)
+    case 3:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/ajax/v2/episode/sources?id=${code}`)
         .then(res=>{
           res = JSON.parse(res);
           document.querySelector('iframe').src = res.link;
@@ -160,7 +163,8 @@ function video() {
       break;
     case 1:
     case 2:
-      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
+    case 3:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/ajax/v2/episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
         .then(res=>{
           const parser = new DOMParser();
           let doc = parser.parseFromString(JSON.parse(res).html, 'text/html');
@@ -200,9 +204,10 @@ function setTop() {
   <option value="0">animeflv.net</option>
   <option value="1">aniwatchtv.to</option>
   <option value="2">hianime.to</option>
-  <option value="3" disabled>jkanime.net</option>
-  <option value="4" disabled>dopebox.to</option>
-  <option value="5" disabled>animeonline.ninja</option>
+  <option value="3">9animetv.to</option>
+  <option value="4" disabled>jkanime.net</option>
+  <option value="5" disabled>dopebox.to</option>
+  <option value="6" disabled>animeonline.ninja</option>
 </select>`;
       document.getElementById('provider').value = state[si].provider;
       document.getElementById('provider').onchange = (evt)=>{
