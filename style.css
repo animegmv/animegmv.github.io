@@ -71,11 +71,13 @@ iframe {
 .wrap div {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   flex: 0 0 calc(20% - (4 * 1em) / 5);
 }
 .wrap div img {
   width: 100%;
   border-radius: 0.25rem;
+  margin: auto;
 }
 .wrap div span {
   height: 3.50em;
