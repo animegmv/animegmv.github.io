@@ -17,9 +17,6 @@ function download(url, name, id) {
   a.click();
   a.remove();
 }
-function updateVid(code) {
-  document.querySelector('iframe').src = code;
-}
 
 function showSearch(con) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
@@ -117,10 +114,24 @@ function episodes() {
       break;
   }
 }
-//https://hianimez.to/ajax/v2/episode/servers?episodeId=58122
-//https://hianimez.to/ajax/v2/episode/sources?id=31995
-// ^ Firefox for devtools
 //cats-tea-17956
+
+function updateVid(code, provider) {
+  switch(provider) {
+    case 0:
+      document.querySelector('iframe').src = code;
+      break;
+    case 1:
+    case 2:
+      geturl(`https://${['aniwatchtv','hianime'][provider-1]}.to/ajax/v2/episode/sources?id=${code}`)
+        .then(res=>{
+          res = JSON.parse(res);
+          document.querySelector('iframe').src = res.link;
+        });
+      break;
+  }
+}
+
 function showVideo(videos) {
   //  sandbox="allow-presentation	allow-scripts allow-downloads"
   document.getElementById('results').innerHTML = `${videos.map(s=>`<button onclick="updateVid('${s.code}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')}
@@ -144,8 +155,8 @@ function video() {
         .then(res=>{
           let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
           showVideo(videos.SUB);
-          updateVid(videos.SUB[0].code);
-        })
+          updateVid(videos.SUB[0].code, 0);
+        });
       break;
     case 1:
     case 2:
@@ -161,9 +172,8 @@ function video() {
                 code: v.getAttribute('data-id')
               }
             });
-/*
-<div class=\"ps_-block ps_-block-sub servers-sub\"><div class=\"ps__-title\"><i class=\"fas fa-closed-captioning mr-2\"></i>SUB:</div>\n        \n        \n        \n        \n        <div class=\"ps__-list\">\n            \n                \n                    <a href=\"javascript:;\" class=\"btn\">HD-3</a>\n                </div>\n            \n                <div class=\"item server-item\" data-type=\"sub\" data-id=\"610646\"\n                     data-server-id=\"4\">\n                    <a href=\"javascript:;\" class=\"btn\">HD-1</a>\n                </div>\n            \n                <div class=\"item server-item\" data-type=\"sub\" data-id=\"31995\"\n                     data-server-id=\"1\">\n                    <a href=\"javascript:;\" class=\"btn\">HD-2</a>\n                </div>\n            \n        </div>\n        <div class=\"clearfix\"></div>\n        \n    </div>\n\n
-*/
+          showVideo(videos);
+          updateVid(videos[0].code, provider);
         });
       break;
   }
