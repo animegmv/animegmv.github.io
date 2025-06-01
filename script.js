@@ -242,6 +242,7 @@ function setTop() {
   <option value="4">jkanime.net</option>
   <option value="5">dopebox.to</option>
   <option value="6" disabled>animeonline.ninja</option>
+  <option value="7" disabled>hentaijk.com</option>
 </select>`;
       document.getElementById('provider').value = state[si].provider??0;
       document.getElementById('provider').onchange = (evt)=>{
