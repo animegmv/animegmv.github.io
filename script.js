@@ -269,3 +269,22 @@ function setTop() {
 }
 
 setTop();
+
+/*
+const originalFetch = window.fetch;
+window.fetch = function (...args) {
+  if (args[0].includes('/thing/')) {
+    console.warn('Blocked fetch to', args[0]);
+    return Promise.reject(new Error('Blocked URL'));
+  }
+  return originalFetch.apply(this, args);
+};
+const originalOpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+  if (url.includes('/thing/')) {
+    console.warn('Blocked XHR to', url);
+    throw new Error('Blocked URL');
+  }
+  return originalOpen.call(this, method, url, ...rest);
+};
+*/
