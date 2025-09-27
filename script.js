@@ -5,7 +5,8 @@ function geturl(url) {
     fetch(`https://api.fsh.plus/file?url=${encodeURIComponent(url)}`)
       .then(res=>res.text())
       .then(res=>{
-        fetchCache[url] = resolve(res)
+        fetchCache[url] = res;
+        resolve(res);
       });
   })
 }
