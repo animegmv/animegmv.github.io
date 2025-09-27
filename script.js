@@ -1,7 +1,10 @@
 let fetchCache = {};
 function geturl(url) {
   return new Promise((resolve, reject) => {
-    if (fetchCache[url]) resolve(fetchCache[url]);
+    if (fetchCache[url]) {
+      resolve(fetchCache[url]);
+      return;
+    }
     fetch(`https://api.fsh.plus/file?url=${encodeURIComponent(url)}`)
       .then(res=>res.text())
       .then(res=>{
@@ -208,7 +211,7 @@ function video() {
           let videos = Array.from(doc.querySelectorAll('div.item.server-item'))
             .map(v => {
               return {
-                title: 'Server '+v.getAttribute('data-server-id'),
+                title: v.querySelector('a').innerText,
                 ads: false,
                 code: v.getAttribute('data-id')
               }
