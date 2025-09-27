@@ -1,8 +1,12 @@
+let fetchCache = {};
 function geturl(url) {
   return new Promise((resolve, reject) => {
-    fetch(`https://api.fsh.plus/html?url=${encodeURIComponent(url)}`)
+    if (fetchCache[url]) resolve(fetchCache[url]);
+    fetch(`https://api.fsh.plus/file?url=${encodeURIComponent(url)}`)
       .then(res=>res.text())
-      .then(res=>resolve(res));
+      .then(res=>{
+        fetchCache[url] = resolve(res)
+      });
   })
 }
 function getImgUrl(url) {
