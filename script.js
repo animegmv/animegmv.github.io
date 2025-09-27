@@ -52,7 +52,7 @@ function search() {
     case 1:
     case 2:
     case 3:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/${quer===''?'recently-updated':'search'}?page=${page}&keyword=${quer}`)
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/${quer===''?'recently-updated':'search'}?keyword=${quer}&page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
@@ -229,7 +229,7 @@ function setTop() {
   top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
   switch (state[si].page) {
     case 'search':
-      top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter'){state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();}" value="${state[si].q}">
+      top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter'){state[state.length]={page:'search',q:this.value.trim(),n:1,provider:${state[si].provider}};si=state.length-1;setTop();}" value="${state[si].q}">
 <button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();">Search</button>
 <span style="flex:1"></span>
 <select id="provider">
