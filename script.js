@@ -92,7 +92,7 @@ function search() {
         })
       break;
     case 5:
-      geturl(`https://dopebox.to/${quer==='home'?'':'search'}/${quer}?page=${page}`)
+      geturl(`https://dopebox.to/${quer===''?'home':'search'}/${quer}?page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
@@ -150,8 +150,20 @@ function episodes() {
                 finished: finished,
                 next: '',
                 eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item.ep-item, a.item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }}).reverse()
-              })
+              });
             });
+        });
+      break;
+    case 5:
+      geturl(`https://dopebox.to/ajax/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
+        .then(res=>{
+          const parser = new DOMParser();
+          let doc = parser.parseFromString(res, 'text/html');
+          showEpisodes({
+            finished: true,
+            next: '',
+            eps: Array.from(doc.querySelectorAll('a')).map(e=>{return { id: e.getAttribute('data-id'), n: e.querySelector('span').innerText }})
+          });
         });
       break;
   }
