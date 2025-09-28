@@ -113,7 +113,7 @@ function search() {
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
           let con = Array.from(doc.querySelector('div.search-page').querySelectorAll('div.result-item'))
-            .map(m => {
+            .map(m=>{
               return {
                 id: m.querySelector('.details a').href.split('/').slice(-2)[0],
                 title: m.querySelector('.details a').innerText.replaceAll("'","&#39;"),
@@ -121,7 +121,7 @@ function search() {
               };
             });
           showSearch(con);
-        })
+        });
       break;
   }
 }
@@ -174,7 +174,7 @@ function episodes() {
       showEpisodes({
         finished: true,
         next: '',
-        eps: [{ id: state[si].id, n: 1 }})
+        eps: [{ id: state[si].id, n: 1 })
       });
       break;
   }
