@@ -230,7 +230,7 @@ function updateVid(code, provider) {
       geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/ajax/${provider===3?'':'v2/'}episode/sources?id=${code}`)
         .then(async(res)=>{
           res = JSON.parse(res);
-          document.querySelector('iframe').src = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-1]+'.to/');
+          document.querySelector('iframe').srcdoc = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-1]+'.to/');
         });
       break;
     case 5:
