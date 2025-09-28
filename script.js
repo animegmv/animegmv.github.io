@@ -228,16 +228,16 @@ function updateVid(code, provider) {
     case 2:
     case 3:
       geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/ajax/${provider===3?'':'v2/'}episode/sources?id=${code}`)
-        .then(res=>{
+        .then(async(res)=>{
           res = JSON.parse(res);
-          document.querySelector('iframe').src = res.link;
+          document.querySelector('iframe').src = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-1]+'.to/');
         });
       break;
     case 5:
       geturl(`https://dopebox.to/ajax/episode/sources/${code}`)
-        .then(res=>{
+        .then(async(res)=>{
           res = JSON.parse(res);
-          document.querySelector('iframe').srcdoc = videoWithRefer(res.link, 'https://dopebox.to/');
+          document.querySelector('iframe').srcdoc = await videoWithRefer(res.link, 'https://dopebox.to/');
         });
       break;
   }
