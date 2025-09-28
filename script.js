@@ -11,7 +11,45 @@ function geturl(url) {
         fetchCache[url] = res;
         resolve(res);
       });
-  })
+  });
+}
+function videoWithRefer(url, refer) {
+  return new Promise((resolve, reject) => {
+    if (fetchCache[url]) {
+      resolve(fetchCache[url]);
+      return;
+    }
+    fetch('https://api.fsh.plus/request?url='+encodeURIComponent(url), {
+      method: "POST",
+      body: JSON.stringify({
+        method: 'GET',
+        headers: {
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+          referer: refer,
+          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-language": "en-US,en;q=0.9,es-ES;q=0.8,es;q=0.7",
+          "cache-control": "no-cache",
+          pragma: "no-cache",
+          priority: "u=0, i",
+          "sec-ch-ua": "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Windows\"",
+          "sec-fetch-dest": "iframe",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "cross-site",
+          "sec-fetch-storage-access": "active",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1"
+        }
+      })
+    })
+      .then(res=>res.json())
+      .then(res=>{
+        res.content = '<base href="'+res.url+'">'+res.content;
+        fetchCache[url] = res.content;
+        resolve(res.content);
+      });
+  });
 }
 function getImgUrl(url) {
   return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`;
@@ -193,6 +231,13 @@ function updateVid(code, provider) {
         .then(res=>{
           res = JSON.parse(res);
           document.querySelector('iframe').src = res.link;
+        });
+      break;
+    case 5:
+      geturl(`https://dopebox.to/ajax/episode/sources/${code}`)
+        .then(res=>{
+          res = JSON.parse(res);
+          document.querySelector('iframe').srcdoc = videoWithRefer(res.link, 'https://dopebox.to/');
         });
       break;
   }
