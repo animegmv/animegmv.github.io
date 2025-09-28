@@ -171,16 +171,11 @@ function episodes() {
         });
       break;
     case 5:
-      geturl(`https://dopebox.to/ajax/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
-        .then(res=>{
-          const parser = new DOMParser();
-          let doc = parser.parseFromString(res, 'text/html');
-          showEpisodes({
-            finished: true,
-            next: '',
-            eps: Array.from(doc.querySelectorAll('a')).map(e=>{return { id: e.getAttribute('data-id'), n: e.querySelector('span').innerText }})
-          });
-        });
+      showEpisodes({
+        finished: true,
+        next: '',
+        eps: [{ id: state[si].id, n: 1 }})
+      });
       break;
   }
 }
@@ -244,6 +239,16 @@ function video() {
                 code: v.getAttribute('data-id')
               }
             });
+          showVideo(videos, provider);
+          updateVid(videos[0].code, provider);
+        });
+      break;
+    case 5:
+      geturl(`https://dopebox.to/ajax/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
+        .then(res=>{
+          const parser = new DOMParser();
+          let doc = parser.parseFromString(res, 'text/html');
+          let videos = Array.from(doc.querySelectorAll('a')).map(e=>{return { title: e.querySelector('span').innerText, ads: false, code: e.getAttribute('data-id') }});
           showVideo(videos, provider);
           updateVid(videos[0].code, provider);
         });
