@@ -174,7 +174,7 @@ function episodes() {
       showEpisodes({
         finished: true,
         next: '',
-        eps: [{ id: state[si].id, n: 1 })
+        eps: [{ id: state[si].id, n: 1 }]
       });
       break;
   }
