@@ -30,7 +30,7 @@ function showSearch(con) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
 ${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${con.length>[23,35,35,29,999,31][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
+${con.length>[23,35,35,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}"><span>${m.title}</span></div>`).join('')}
 </div>`;
@@ -100,8 +100,24 @@ function search() {
             .map(m => {
               return {
                 id: m.querySelector('a').href.split('/').slice(-1)[0],
-                title: m.querySelector('h2 a').innerText.replaceAll("'","&#39;"),
+                title: m.querySelector('h2 a,h3 a').innerText.replaceAll("'","&#39;"),
                 img: getImgUrl(m.querySelector('img').getAttribute('data-src'))
+              };
+            });
+          showSearch(con);
+        })
+      break;
+    case 6:
+      geturl(`https://ww3.animeonline.ninja/page/${page}?s=${quer}`)
+        .then(res=>{
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(res, 'text/html');
+          let con = Array.from(doc.querySelector('div.search-page').querySelectorAll('div.result-item'))
+            .map(m => {
+              return {
+                id: m.querySelector('.details a').href.split('/').slice(-2)[0],
+                title: m.querySelector('.details a').innerText.replaceAll("'","&#39;"),
+                img: getImgUrl(m.querySelector('.thumbnail img').getAttribute('data-src'))
               };
             });
           showSearch(con);
@@ -261,7 +277,7 @@ function setTop() {
   <option value="3">9animetv.to</option>
   <option value="4">jkanime.net</option>
   <option value="5">dopebox.to</option>
-  <option value="6" disabled>animeonline.ninja</option>
+  <option value="6">animeonline.ninja</option>
   <option value="7" disabled>hentaijk.com</option>
 </select>`;
       document.getElementById('provider').value = state[si].provider??0;
