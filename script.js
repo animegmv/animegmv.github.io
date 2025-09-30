@@ -45,7 +45,17 @@ function videoWithRefer(url, refer) {
     })
       .then(res=>res.json())
       .then(res=>{
-        res.content = '<base href="'+res.url+'">'+res.content;
+        res.content = `<base href="${res.url}">
+<script>
+window.parent = window;
+window.top = window;
+window.frameElement = null;
+document.referrer = '${refer}';
+window.location.assign = ()=>{};
+window.location.replace = ()=>{};
+history.pushState = ()=>{};
+history.replaceState = ()=>{};
+</script>`+res.content.replaceAll(/<meta .*?http-equiv="Content-Security-Policy".*?>/gi, '');
         fetchCache[url] = res.content;
         resolve(res.content);
       });
