@@ -140,7 +140,7 @@ function search() {
         })
       break;
     case 5:
-      geturl(`https://dopebox.to/${quer===''?'home':'search'}/${quer}?page=${page}`)
+      geturl(`https://dopebox.to/${quer===''?'home':'search'}/${quer.replaceAll(' ','+')}?page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
