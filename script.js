@@ -46,7 +46,7 @@ function videoWithRefer(url, refer) {
       .then(res=>res.json())
       .then(res=>{
         res.content = `<base href="${res.url}">
-<script>
+<script type="module">
 window.parent = window;
 window.top = window;
 window.frameElement = null;
@@ -55,6 +55,24 @@ window.location.assign = ()=>{};
 window.location.replace = ()=>{};
 history.pushState = ()=>{};
 history.replaceState = ()=>{};
+const originalFetch = window.fetch;
+window.fetch = function (...args) {
+  /*if (args[0].includes('/thing/')) {
+    console.warn('Blocked fetch to', args[0]);
+    return Promise.reject(new Error('Blocked URL'));
+  }*/
+  args[0] = 'https://api.fsh.plus/file?url='+encodeURIComponent(args[0]);
+  return originalFetch.apply(this, args);
+};
+const originalOpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+  /*if (url.includes('/thing/')) {
+    console.warn('Blocked XHR to', url);
+    throw new Error('Blocked URL');
+  }*/
+  url = 'https://api.fsh.plus/file?url='+encodeURIComponent(url);
+  return originalOpen.call(this, method, url, ...rest);
+};
 </script>`+res.content.replaceAll(/<meta .*?http-equiv="Content-Security-Policy".*?>/gi, '');
         fetchCache[url] = res.content;
         resolve(res.content);
@@ -365,22 +383,3 @@ function setTop() {
 }
 
 setTop();
-
-/*
-const originalFetch = window.fetch;
-window.fetch = function (...args) {
-  if (args[0].includes('/thing/')) {
-    console.warn('Blocked fetch to', args[0]);
-    return Promise.reject(new Error('Blocked URL'));
-  }
-  return originalFetch.apply(this, args);
-};
-const originalOpen = XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-  if (url.includes('/thing/')) {
-    console.warn('Blocked XHR to', url);
-    throw new Error('Blocked URL');
-  }
-  return originalOpen.call(this, method, url, ...rest);
-};
-*/
