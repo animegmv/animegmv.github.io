@@ -47,8 +47,8 @@ function videoWithRefer(url, refer) {
       .then(res=>{
         res.content = `<base href="${res.url}">
 <script type="module">
+console.clear = ()=>{};
 window.parent = window;
-window.top = window;
 window.frameElement = null;
 document.referrer = '${refer}';
 window.location.assign = ()=>{};
