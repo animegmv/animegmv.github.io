@@ -72,7 +72,7 @@ XMLHttpRequest.prototype.open = function (method, url, ...rest) {
   url = 'https://api.fsh.plus/file?url='+encodeURIComponent(url);
   return originalOpen.call(this, method, url, ...rest);
 };
-</script>`+res.content.replaceAll(/<meta .*?http-equiv="Content-Security-Policy".*?>/gi, '');
+</script>`+res.content.replaceAll(/<meta .*?http-equiv="Content-Security-Policy".*?>/gi, '').replace(/<script async src="https:\/\/www.googletagmanager.com\/gtag\/js\?id=UA-[0-9]+?-[0-9]"><\/script>/gi,'');
         fetchCache[url] = res.content;
         resolve(res.content);
       });
