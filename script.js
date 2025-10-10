@@ -1,3 +1,4 @@
+window.console.clear = ()=>{};
 let fetchCache = {};
 function geturl(url) {
   return new Promise((resolve, reject) => {
@@ -47,9 +48,7 @@ function videoWithRefer(url, refer) {
       .then(res=>{
         res.content = `<base href="${res.url}">
 <script type="module">
-console.clear = ()=>{};
-window.parent = window;
-window.frameElement = null;
+window.console.clear = ()=>{};
 document.referrer = '${refer}';
 window.location.assign = ()=>{};
 window.location.replace = ()=>{};
