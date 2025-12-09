@@ -1,3 +1,25 @@
+/*
+https://api.codetabs.com/v1/proxy/?quest=
+https://api.fsh.plus/file?url=
+https://proxy.khacmanh-info.workers.dev/?url=
+https://proxy.nkm1703.workers.dev/?url=
+https://proxy.uneti-it.workers.dev/?url=
+https://proxy.teamvn1235.workers.dev/?url=
+https://proxy.zeronightpro.workers.dev/?url=
+https://proxy.manhrit.workers.dev/?url=
+https://proxy.cskh-n8n.workers.dev/?url=
+https://proxy.manhnguyenict.workers.dev/?url=
+https://proxy.nguyenmanhict.workers.dev/?url=
+https://proxy.cskh-zm.workers.dev/?url=
+https://proxy.tgb6jphrx7.workers.dev/?url=
+https://proxy.manhict.workers.dev/?url=
+https://bypass.manhgdev.workers.dev/?url=
+https://cors.vaportrade.net/
+https://cors.luckydesigner.workers.dev/?
+https://cors.eu.org/
+https://cors.niceeli.workers.dev/?
+https://cors.bbear.workers.dev/?
+*/
 window.console.clear = ()=>{};
 let fetchCache = {};
 function geturl(url) {
