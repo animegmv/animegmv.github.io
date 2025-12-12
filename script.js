@@ -129,17 +129,11 @@ function search() {
   let provider = state[si].provider??0;
   switch (provider) {
     case 0:
-    case 2:
-      let url = [
-        `https://www3.animeflv.net/browse?q=${quer}&page=${page}`,
-        '',
-        `https://animeflv.ar/page/${page}/?s=${quer}`
-      ][provider]
-      geturl(url)
+      geturl(`https://www3.animeflv.net/browse?q=${quer}&page=${page}`)
         .then(res=>{
           let con = Array.from(res
-            .match(/<!--<Animes>-->([^¬]|¬)*?<!--<\/Animes>-->/g)[0]
-            .match(/<article class="Anime.*?>([^¬]|¬)*?<\/article>/g) ?? [])
+            .match(/<!--<Animes>-->(?:[^¬]|¬)*?<!--<\/Animes>-->/g)[0]
+            .match(/<article class="Anime.*?>(?:[^¬]|¬)*?<\/article>/g) ?? [])
             .map(m => {
               return {
                 id: m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0],
@@ -154,13 +148,29 @@ function search() {
       geturl(`https://animeflv.one/animes?buscar=${quer}&pag=${page}`)
         .then(res=>{
           let con = Array.from(res
-            .match(/<div class="ul x6">([^¬]|¬)*?<\/div>/g)[0]
-            .match(/<article class="li">([^¬]|¬)*?<\/article>/g) ?? [])
+            .match(/<div class="ul x6">(?:[^¬]|¬)*?<\/div>/g)[0]
+            .match(/<article class="li">(?:[^¬]|¬)*?<\/article>/g) ?? [])
             .map(m => {
               return {
                 id: m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0],
-                title: m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;"),
-                img: getImgUrl(m.match(/<img width="[0-9\.]+?" height="[0-9\.]+?" src="(.*?)" alt.*?>/g)[0].split('"')[1])
+                title: m.match(/<h3 class="h"><a href=".*?" title=".*?">.*?<\/a><\/h3>/g)[0].split('>')[2].split('<')[0].replaceAll("'","&#39;"),
+                img: getImgUrl(m.match(/<img.*? data-src="(.*?)" .*?>/)[1])
+              };
+            });
+          showSearch(con);
+        })
+      break;
+    case 2:
+      geturl(`https://animeflv.ar/page/${page}/?s=${quer}`)
+        .then(res=>{
+          let con = Array.from(res
+            .match(/<div class="listupd">(?:[^¬]|¬)*?<\/div><div class="pagination">/g)[0]
+            .match(/<article class="bs" itemscope="itemscope" itemtype=".*?">(?:[^¬]|¬)*?<\/article>/g) ?? [])
+            .map(m => {
+              return {
+                id: m.match(/<a href=".*?".*?>/g)[0].split('"')[1].split('/').slice(-2)[0],
+                title: m.match(/<img.*?title="(.*?)".*?>/)[1].replaceAll("'","&#39;"),
+                img: getImgUrl(m.match(/<img.*?src="(.*?)".*?>/)[1])
               };
             });
           showSearch(con);
@@ -398,9 +408,9 @@ function setTop() {
 <select id="provider">
   <option disabled>-- Stable --</option>
   <option value="0">animeflv.net</option>
-  <option value="1">animeflv.net</option>
-  <option value="2">animeflv.net</option>
   <option disabled>-- Experimental --</option>
+  <option value="1">animeflv.one</option>
+  <option value="2">animeflv.ar</option>
   <option value="3">aniwatchtv.to</option>
   <option value="4">hianime.to</option>
   <option value="5">9animetv.to</option>
