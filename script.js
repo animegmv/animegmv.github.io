@@ -117,7 +117,7 @@ function showSearch(con) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
 ${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${con.length>[23,35,35,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
+${con.length>[23,23,20,35,35,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}"><span>${m.title}</span></div>`).join('')}
 </div>`;
@@ -129,11 +129,17 @@ function search() {
   let provider = state[si].provider??0;
   switch (provider) {
     case 0:
-      geturl(`https://www3.animeflv.net/browse?page=${page}&q=${quer}`)
+    case 2:
+      let url = [
+        `https://www3.animeflv.net/browse?q=${quer}&page=${page}`,
+        '',
+        `https://animeflv.ar/page/${page}/?s=${quer}`
+      ][provider]
+      geturl(url)
         .then(res=>{
           let con = Array.from(res
-            .match(/<!--<Animes>-->[^¬]*?<!--<\/Animes>-->/g)[0]
-            .match(/<article class="Anime.*?>[^¬]*?<\/article>/g) ?? [])
+            .match(/<!--<Animes>-->([^¬]|¬)*?<!--<\/Animes>-->/g)[0]
+            .match(/<article class="Anime.*?>([^¬]|¬)*?<\/article>/g) ?? [])
             .map(m => {
               return {
                 id: m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0],
@@ -145,9 +151,25 @@ function search() {
         })
       break;
     case 1:
-    case 2:
+      geturl(`https://animeflv.one/animes?buscar=${quer}&pag=${page}`)
+        .then(res=>{
+          let con = Array.from(res
+            .match(/<div class="ul x6">([^¬]|¬)*?<\/div>/g)[0]
+            .match(/<article class="li">([^¬]|¬)*?<\/article>/g) ?? [])
+            .map(m => {
+              return {
+                id: m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0],
+                title: m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;"),
+                img: getImgUrl(m.match(/<img width="[0-9\.]+?" height="[0-9\.]+?" src="(.*?)" alt.*?>/g)[0].split('"')[1])
+              };
+            });
+          showSearch(con);
+        })
+      break;
     case 3:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/${quer===''?'recently-updated':'search'}?keyword=${quer}&page=${page}`)
+    case 4:
+    case 5:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/${quer===''?'recently-updated':'search'}?keyword=${quer}&page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
@@ -162,7 +184,7 @@ function search() {
           showSearch(con);
         })
       break;
-    case 4:
+    case 6:
       geturl(`https://jkanime.net/${quer===''?'':'buscar'}/${quer}?page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
@@ -178,7 +200,7 @@ function search() {
           showSearch(con);
         })
       break;
-    case 5:
+    case 7:
       geturl(`https://dopebox.to/${quer===''?'home':'search'}/${quer.replaceAll(' ','+')}?page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
@@ -194,7 +216,7 @@ function search() {
           showSearch(con);
         })
       break;
-    case 6:
+    case 8:
       geturl(`https://ww3.animeonline.ninja/page/${page}?s=${quer}`)
         .then(res=>{
           const parser = new DOMParser();
@@ -230,6 +252,8 @@ function episodes() {
   let provider = state[si].provider??0;
   switch (provider) {
     case 0:
+    case 1:
+    case 2:
       geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
         .then(res=>{
           showEpisodes({
@@ -239,13 +263,13 @@ function episodes() {
           });
         })
       break;
-    case 1:
-    case 2:
     case 3:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/${provider===3?'watch/':''}${state[si].id}`)
+    case 4:
+    case 5:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/${provider===5?'watch/':''}${state[si].id}`)
         .then(res=>{
           let finished = (Array.from(res.matchAll(/<span( class="name")?>(Finished Airing|Currently Airing)<\/span>/g))[0][1]==='Finished Airing');
-          geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/ajax/${provider===3?'':'v2/'}episode/list/${state[si].id.split('-').slice(-1)[0]}`)
+          geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/list/${state[si].id.split('-').slice(-1)[0]}`)
             .then(res2=>{
               const parser = new DOMParser();
               let doc = parser.parseFromString(JSON.parse(res2).html, 'text/html');
@@ -257,7 +281,7 @@ function episodes() {
             });
         });
       break;
-    case 5:
+    case 7:
       showEpisodes({
         finished: true,
         next: '',
@@ -271,18 +295,20 @@ function episodes() {
 function updateVid(code, provider) {
   switch(provider) {
     case 0:
-      document.querySelector('iframe').src = code;
-      break;
     case 1:
     case 2:
+      document.querySelector('iframe').src = code;
+      break;
     case 3:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/ajax/${provider===3?'':'v2/'}episode/sources?id=${code}`)
+    case 4:
+    case 5:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/sources?id=${code}`)
         .then(async(res)=>{
           res = JSON.parse(res);
-          document.querySelector('iframe').srcdoc = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-1]+'.to/');
+          document.querySelector('iframe').srcdoc = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-3]+'.to/');
         });
       break;
-    case 5:
+    case 7:
       geturl(`https://dopebox.to/ajax/episode/sources/${code}`)
         .then(async(res)=>{
           res = JSON.parse(res);
@@ -311,6 +337,8 @@ function video() {
   let provider = state[si].provider??0;
   switch (provider) {
     case 0:
+    case 1:
+    case 2:
       geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
         .then(res=>{
           let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
@@ -318,10 +346,10 @@ function video() {
           updateVid(videos.SUB[0].code, 0);
         });
       break;
-    case 1:
-    case 2:
     case 3:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-1]}.to/ajax/${provider===3?'':'v2/'}episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
+    case 4:
+    case 5:
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
         .then(res=>{
           const parser = new DOMParser();
           let doc = parser.parseFromString(JSON.parse(res).html, 'text/html');
@@ -337,7 +365,7 @@ function video() {
           updateVid(videos[0].code, provider);
         });
       break;
-    case 5:
+    case 7:
       geturl(`https://dopebox.to/ajax/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
         .then(res=>{
           const parser = new DOMParser();
@@ -370,14 +398,16 @@ function setTop() {
 <select id="provider">
   <option disabled>-- Stable --</option>
   <option value="0">animeflv.net</option>
+  <option value="1">animeflv.net</option>
+  <option value="2">animeflv.net</option>
   <option disabled>-- Experimental --</option>
-  <option value="1">aniwatchtv.to</option>
-  <option value="2">hianime.to</option>
-  <option value="3">9animetv.to</option>
-  <option value="4">jkanime.net</option>
-  <option value="5">dopebox.to</option>
-  <option value="6">animeonline.ninja</option>
-  <option value="7" disabled>hentaijk.com</option>
+  <option value="3">aniwatchtv.to</option>
+  <option value="4">hianime.to</option>
+  <option value="5">9animetv.to</option>
+  <option value="6">jkanime.net</option>
+  <option value="7">dopebox.to</option>
+  <option value="8">animeonline.ninja</option>
+  <option value="9" disabled style="display:none">hentaijk.com</option>
 </select>`;
       document.getElementById('provider').value = state[si].provider??0;
       document.getElementById('provider').onchange = (evt)=>{
