@@ -82,6 +82,7 @@ iframe {
 .wrap div span {
   height: 3.50em;
   font-size: 75%;
+  overflow: hidden;
 }
 .anime {
   display: flex;
