@@ -117,9 +117,9 @@ function showSearch(con) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
 ${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${con.length>[23,23,20,35,35,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
+${con.length>[23,23,19,35,35,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
-  ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}"><span>${m.title}</span></div>`).join('')}
+  ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}" loading="lazy"><span>${m.title}</span></div>`).join('')}
 </div>`;
 }
 function search() {
@@ -152,8 +152,8 @@ function search() {
             .match(/<article class="li">(?:[^¬]|¬)*?<\/article>/g) ?? [])
             .map(m => {
               return {
-                id: m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0],
-                title: m.match(/<h3 class="h"><a href=".*?" title=".*?">.*?<\/a><\/h3>/g)[0].split('>')[2].split('<')[0].replaceAll("'","&#39;"),
+                id: m.match(/<a href="(.*?)".*?>/)[1].split('/').slice(-1)[0],
+                title: m.match(/<h3 class="h"><a.*?>(.*?)<\/a><\/h3>/)[1].replaceAll("'","&#39;"),
                 img: getImgUrl(m.match(/<img.*? data-src="(.*?)" .*?>/)[1])
               };
             });
@@ -168,7 +168,7 @@ function search() {
             .match(/<article class="bs" itemscope="itemscope" itemtype=".*?">(?:[^¬]|¬)*?<\/article>/g) ?? [])
             .map(m => {
               return {
-                id: m.match(/<a href=".*?".*?>/g)[0].split('"')[1].split('/').slice(-2)[0],
+                id: m.match(/<a href="(.*?)".*?>/)[1].split('/').slice(-2)[0],
                 title: m.match(/<img.*?title="(.*?)".*?>/)[1].replaceAll("'","&#39;"),
                 img: getImgUrl(m.match(/<img.*?src="(.*?)".*?>/)[1])
               };
@@ -260,17 +260,43 @@ function showEpisodes(res) {
 }
 function episodes() {
   let provider = state[si].provider??0;
-  switch (provider) {
+  switch(provider) {
     case 0:
     case 1:
     case 2:
-      geturl(`https://www3.animeflv.net/anime/${state[si].id}`)
+      geturl(`https://${['www3.animeflv.net','animeflv.one','animeflv.ar'][provider]}/anime/${state[si].id}`)
         .then(res=>{
-          showEpisodes({
-            finished: res.match(/<p class="AnmStts A">/),
-            next: JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3],
-            eps: JSON.parse(res.match(/var episodes = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']').map(e=>{return { id: e[0], n: e[0] }})
-          });
+          let data = {};
+          switch(provider) {
+            case 0:
+              data = {
+                finished: res.match(/<p class="AnmStts A">/),
+                next: JSON.parse(res.match(/var anime_info = \[.*?\];/)[0].split('];')[0].split(' = ')[1]+']')[3],
+                eps: JSON.parse(res.match(/var episodes = (\[.*?\]);/)[1]).map(e=>{return { id: e[0], n: e[0] }})
+              };
+              break;
+            case 1:
+              data = {
+                finished: res.includes('<div class="st c-f"><span>Finalizado</span></div>'),
+                next: res.includes('<ul class="ep prox">')?res.match(/Episodio<\/b><strong>(.*?) <i/)[1]:'',
+                eps: JSON.parse(res.match(/var eps = (\[.*?\]);/)[1]).map(e=>{return { id: state[si].id+'-'+e[0], n: e[0] }})
+              };
+              break;
+            case 2:
+              data = {
+                finished: res.match(/<span><b>Status:<\/b> Completed<\/span>/),
+                next: '',
+                eps: Array.from(res.match(/<div class="ephead">.*?<\/div><ul>(.*?)<\/ul>/)[1].matchAll(/<li.*?>.*?<\/li>/g)).map(e=>{
+                  e = e[0];
+                  return {
+                    id: e.match(/<a href="(.*?)">/)[1].split('/').slice(-2)[0],
+                    n: e.match(/<div class="epl-num">(.*?)<\/div>/)[1]
+                  }
+                })
+              };
+              break;
+          }
+          showEpisodes(data);
         })
       break;
     case 3:
@@ -417,8 +443,7 @@ function setTop() {
   <option value="6">jkanime.net</option>
   <option value="7">dopebox.to</option>
   <option value="8">animeonline.ninja</option>
-  <option value="9" disabled style="display:none">hentaijk.com</option>
-</select>`;
+</select>`;// animeav1.org hentaijk.com
       document.getElementById('provider').value = state[si].provider??0;
       document.getElementById('provider').onchange = (evt)=>{
         state[state.length] = state[si];
