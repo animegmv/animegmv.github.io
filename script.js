@@ -435,9 +435,9 @@ function setTop() {
 <select id="provider">
   <option disabled>-- Stable --</option>
   <option value="0">animeflv.net</option>
-  <option disabled>-- Experimental --</option>
   <option value="1">animeflv.one</option>
   <option value="2">animeflv.ar</option>
+  <option disabled>-- Experimental --</option>
   <option value="3">aniwatchtv.to</option>
   <option value="4">hianime.to</option>
   <option value="5">9animetv.to</option>
