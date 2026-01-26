@@ -386,7 +386,7 @@ function video() {
     case 3:
     case 4:
     case 5:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/${provider===3?'list/':'servers?episodeId='}${state[si].id.split('-').slice(-1)[0]}`)
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
         .then(res=>{
           const parser = new DOMParser();
           let doc = parser.parseFromString(JSON.parse(res).html, 'text/html');
