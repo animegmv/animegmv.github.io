@@ -43,26 +43,26 @@ function videoWithRefer(url, refer) {
       return;
     }
     fetch('https://api.fsh.plus/request?url='+encodeURIComponent(url), {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({
         method: 'GET',
         headers: {
-          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
           referer: refer,
-          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-          "accept-language": "en-US,en;q=0.9,es-ES;q=0.8,es;q=0.7",
-          "cache-control": "no-cache",
-          pragma: "no-cache",
-          priority: "u=0, i",
-          "sec-ch-ua": "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": "\"Windows\"",
-          "sec-fetch-dest": "iframe",
-          "sec-fetch-mode": "navigate",
-          "sec-fetch-site": "cross-site",
-          "sec-fetch-storage-access": "active",
-          "sec-fetch-user": "?1",
-          "upgrade-insecure-requests": "1"
+          accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'accept-language': 'en-US,en;q=1',
+          'cache-control': 'no-cache',
+          pragma: 'no-cache',
+          priority: 'u=0, i',
+          'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Windows"',
+          //'sec-fetch-dest': 'iframe',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'cross-site',
+          'sec-fetch-storage-access': 'active',
+          'sec-fetch-user': '?1',
+          'upgrade-insecure-requests': '1'
         }
       })
     })

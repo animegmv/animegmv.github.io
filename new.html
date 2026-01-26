@@ -2,25 +2,10 @@
 <html lang="en">
   <head>
     <title>AnimeGMV</title>
-    <link rel="icon" href="https://animegmv.github.io/favicon.ico" type="image/x-icon">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/style.css">
-    <link rel="icon" href="https://animegmv.github.io/favicon.ico" type="image/png">
   </head>
   <body>
-    <div id="con"><p>Connecting</p></div>
     <script>
-      fetch('https://api.fsh.plus/time', { signal: AbortSignal.timeout(2500) })
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('con').remove();
-        })
-        .catch(error => {
-          document.getElementById('con').innerHTML = '<p>Cannot connect</p>';
-        });
+      location.pathname = '/';
     </script>
-    <div id="top"></div>
-    <script src="/script.js"></script>
-    <div id="results"></div>
   </body>
 </html>
