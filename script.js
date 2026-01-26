@@ -119,7 +119,7 @@ ${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si]
 ${state[si].n>1?state[si].n:''}
 ${con.length>[23,23,19,35,35,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
-  ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}" loading="lazy"><span>${m.title}</span></div>`).join('')}
+  ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title.replaceAll('"','”')}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}" loading="lazy"><span>${m.title}</span></div>`).join('')}
 </div>`;
 }
 function search() {
@@ -328,12 +328,14 @@ function episodes() {
 }
 //cats-tea-17956
 
-function updateVid(code, provider) {
+function updateVid(code, provider, extra='') {
+  let iframe = document.querySelector('iframe');
   switch(provider) {
     case 0:
     case 1:
     case 2:
-      document.querySelector('iframe').src = code;
+      iframe[extra==='SW'?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
+      iframe.src = code;
       break;
     case 3:
     case 4:
@@ -341,25 +343,24 @@ function updateVid(code, provider) {
       geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/sources?id=${code}`)
         .then(async(res)=>{
           res = JSON.parse(res);
-          document.querySelector('iframe').srcdoc = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-3]+'.to/');
+          iframe.srcdoc = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-3]+'.to/');
         });
       break;
     case 7:
       geturl(`https://dopebox.to/ajax/episode/sources/${code}`)
         .then(async(res)=>{
           res = JSON.parse(res);
-          document.querySelector('iframe').srcdoc = await videoWithRefer(res.link, 'https://dopebox.to/');
+          iframe.srcdoc = await videoWithRefer(res.link, 'https://dopebox.to/');
         });
       break;
   }
 }
 
 function showVideo(videos, provider) {
-  //  sandbox="allow-presentation	allow-scripts allow-downloads"
-  document.getElementById('results').innerHTML = `${videos.map(s=>`<button onclick="updateVid('${s.code}', ${provider})">${s.title}${s.ads?' (ADS)':''}</button>`).join('')}
+  document.getElementById('results').innerHTML = `${videos.map(s=>`<button onclick="updateVid('${s.code}', ${provider}, '${s.title}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')}
 <br>
 <div>
-  <iframe allowfullscreen referrerpolicy="no-referrer" sandbox="allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts" allow="autoplay; compute-pressure; cross-origin-isolated; encrypted-media; fullscreen; gamepad; local-fonts; midi; picture-in-picture; screen-wake-lock; speaker-selection; storage-access; web-share"></iframe>
+  <iframe allowfullscreen referrerpolicy="no-referrer" sandbox="allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin" allow="autoplay; compute-pressure; cross-origin-isolated; encrypted-media; fullscreen; gamepad; local-fonts; midi; picture-in-picture; screen-wake-lock; speaker-selection; storage-access; web-share"></iframe>
 </div>
 <span style="display:flex">
   <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e-1)}',provider:state[si].provider};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
@@ -378,14 +379,14 @@ function video() {
       geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
         .then(res=>{
           let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
-          showVideo(videos.SUB, 0);
-          updateVid(videos.SUB[0].code, 0);
+          showVideo(videos.SUB, provider);
+          updateVid(videos.SUB[0].code, 0, videos.SUB[0].title);
         });
       break;
     case 3:
     case 4:
     case 5:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
+      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/${provider===3?'list/':'servers?episodeId='}${state[si].id.split('-').slice(-1)[0]}`)
         .then(res=>{
           const parser = new DOMParser();
           let doc = parser.parseFromString(JSON.parse(res).html, 'text/html');
