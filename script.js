@@ -328,13 +328,14 @@ function episodes() {
 }
 //cats-tea-17956
 
+const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
 function updateVid(code, provider, extra='') {
   let iframe = document.querySelector('iframe');
+  iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
   switch(provider) {
     case 0:
     case 1:
     case 2:
-      iframe[extra==='SW'?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
       iframe.src = code;
       break;
     case 3:
@@ -360,7 +361,7 @@ function showVideo(videos, provider) {
   document.getElementById('results').innerHTML = `${videos.map(s=>`<button onclick="updateVid('${s.code}', ${provider}, '${s.title}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')}
 <br>
 <div>
-  <iframe allowfullscreen referrerpolicy="no-referrer"></iframe>
+  <iframe allowfullscreen referrerpolicy="no-referrer" sandbox="allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin" allow="autoplay; compute-pressure; cross-origin-isolated; encrypted-media; fullscreen; gamepad; local-fonts; midi; picture-in-picture; screen-wake-lock; speaker-selection; storage-access; web-share"></iframe>
 </div>
 <span style="display:flex">
   <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e-1)}',provider:state[si].provider};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
