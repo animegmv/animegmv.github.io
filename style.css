@@ -61,6 +61,7 @@ iframe {
   aspect-ratio: 16/9;
   border: 1px #444 solid;
   box-sizing: border-box;
+  user-select: none;
 }
 .wrap {
   display: flex;
