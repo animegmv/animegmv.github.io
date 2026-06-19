@@ -339,7 +339,10 @@ function episodes() {
           })
             .then(dat=>dat.json())
             .then(dat=>{
-              let data = JSON.parse(dat.content);
+              let data = { data: [] };
+              try {
+                data = JSON.parse(dat.content);
+              } catch(err) {}
               showEpisodes({
                 finished: res.includes('<div class="enemision finished">Concluido</div>'),
                 next: '',
@@ -357,7 +360,6 @@ function episodes() {
       break;
   }
 }
-//cats-tea-17956
 
 const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
 function updateVid(code, provider, extra='') {
