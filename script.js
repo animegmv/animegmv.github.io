@@ -21,6 +21,22 @@ https://cors.niceeli.workers.dev/?
 https://cors.bbear.workers.dev/?
 */
 window.console.clear = ()=>{};
+const standardHeaders = {
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'accept-language': 'en-US,en;q=1',
+  'cache-control': 'no-cache',
+  pragma: 'no-cache',
+  priority: 'u=0, i',
+  'sec-ch-ua': '"Google Chrome";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-site': 'cross-site',
+  'sec-fetch-storage-access': 'active',
+  'sec-fetch-user': '?1',
+  'upgrade-insecure-requests': '1'
+};
 let fetchCache = {};
 function geturl(url) {
   return new Promise((resolve, reject) => {
@@ -47,22 +63,9 @@ function videoWithRefer(url, refer) {
       body: JSON.stringify({
         method: 'GET',
         headers: {
-          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
-          referer: refer,
-          accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-          'accept-language': 'en-US,en;q=1',
-          'cache-control': 'no-cache',
-          pragma: 'no-cache',
-          priority: 'u=0, i',
-          'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
-          'sec-ch-ua-mobile': '?0',
-          'sec-ch-ua-platform': '"Windows"',
+          ...standardHeaders,
+          referer: refer
           //'sec-fetch-dest': 'iframe',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'cross-site',
-          'sec-fetch-storage-access': 'active',
-          'sec-fetch-user': '?1',
-          'upgrade-insecure-requests': '1'
         }
       })
     })
@@ -101,6 +104,7 @@ XMLHttpRequest.prototype.open = function (method, url, ...rest) {
   });
 }
 function getImgUrl(url) {
+  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com'].includes(new URL(url).hostname)) return url;
   return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`;
 }
 function download(url, name, id) {
@@ -164,7 +168,7 @@ function search() {
       geturl(`https://animeflv.ar/page/${page}/?s=${quer}`)
         .then(res=>{
           let con = Array.from(res
-            .match(/<div class="listupd">(?:[^¬]|¬)*?<\/div><div class="pagination">/g)[0]
+            .match(/<div class="listupd">(?:[^¬]|¬)*?<\/div>\s*<div class="pagination">/g)[0]
             .match(/<article class="bs" itemscope="itemscope" itemtype=".*?">(?:[^¬]|¬)*?<\/article>/g) ?? [])
             .map(m => {
               return {
@@ -313,6 +317,33 @@ function episodes() {
                 finished: finished,
                 next: '',
                 eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item.ep-item, a.item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }}).reverse()
+              });
+            });
+        });
+      break;
+    case 6:
+      fetch(`https://api.fsh.plus/file?url=${encodeURIComponent(`https://jkanime.net/${state[si].id}`)}`)
+        .then(res=>res.text())
+        .then(res=>{
+          let csrf = res.match(/<meta name="csrf-token" content="([^"]+?)">/)[1];
+          fetch('https://api.fsh.plus/request?url='+encodeURIComponent(res.match(/url: '(https:\/\/jkanime.net\/ajax\/episodes\/[0-9]+\/)'\+/)[1]+'1'), {
+            method: 'POST',
+            body: JSON.stringify({
+              method: 'POST',
+              body: '{"_token":"'+csrf+'"}',
+              headers: {
+                ...standardHeaders,
+                referer: `https://jkanime.net/${state[si].id}`
+              }
+            })
+          })
+            .then(dat=>dat.json())
+            .then(dat=>{
+              let data = JSON.parse(dat.content);
+              showEpisodes({
+                finished: res.includes('<div class="enemision finished">Concluido</div>'),
+                next: '',
+                eps: data.data.map(ep=>{return { id: ep.id, n: ep.number }})
               });
             });
         });
