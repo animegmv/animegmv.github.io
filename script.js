@@ -384,9 +384,16 @@ function episodes() {
 }
 
 const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
+const unsandboxed = ['vidtube.site'];
 function updateVid(code, provider, extra='') {
   let iframe = document.querySelector('iframe');
   iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
+  iframe.removeAttribute('src');
+  iframe.removeAttribute('srcdoc');
+  function setUrl(url) {
+    iframe[unsandboxed.includes(new URL(url).hostname)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
+    iframe.src = url;
+  }
   switch(provider) {
     case 0:
     case 1:
@@ -394,10 +401,16 @@ function updateVid(code, provider, extra='') {
       iframe.src = code;
       break;
     case 3:
-      geturl(`https://anikototv.to/ajax/episode/sources?id=${code}`)
-        .then(async(res)=>{
-          res = JSON.parse(res);
-          iframe.srcdoc = await videoWithRefer(res.link, 'https://anikototv.to/');
+      getadvancedurl(`https://anikototv.to/ajax/server?get=${code}`, {
+        method: 'GET',
+        headers: {
+          ...standardHeaders,
+          referer: `https://anikototv.to/watch/${state[si].id}/ep-1`,
+          'x-requested-with': 'XMLHttpRequest'
+        }
+      })
+        .then(res=>{
+          setUrl(res.result.url);
         });
       break;
     case 5:
@@ -461,7 +474,7 @@ function video() {
           })
             .then(res2=>{
               let serdoc = parser.parseFromString(res2.result, 'text/html');
-              let video = Array.from(serdoc.querySelectorAll('li'))
+              let videos = Array.from(serdoc.querySelectorAll('li'))
                 .map(v => {
                   return {
                     title: v.innerText,
@@ -505,12 +518,12 @@ function setTop() {
 <button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();">Search</button>
 <span style="flex:1"></span>
 <select id="provider">
-  <option disabled>-- Stable --</option>
+  <option disabled>-- Main --</option>
   <option value="0">animeflv.net</option>
   <option value="1">animeflv.one</option>
   <option value="2">animeflv.ar</option>
-  <option disabled>-- Experimental --</option>
   <option value="3">anikototv.to</option>
+  <option disabled>-- WIP --</option>
   <option value="4">jkanime.net</option>
   <option value="5">dopebox.to</option>
   <option value="6">animeonline.ninja</option>
