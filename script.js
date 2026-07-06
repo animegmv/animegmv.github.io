@@ -5,7 +5,6 @@ https://proxy.nkm1703.workers.dev/?url=
 https://proxy.uneti-it.workers.dev/?url=
 https://proxy.teamvn1235.workers.dev/?url=
 https://proxy.zeronightpro.workers.dev/?url=
-https://proxy.zeronightpro.workers.dev/?url=
 https://proxy.cskh-n8n.workers.dev/?url=
 https://proxy.manhnguyenict.workers.dev/?url=
 https://proxy.nguyenmanhict.workers.dev/?url=
@@ -380,7 +379,7 @@ function episodes() {
 }
 
 const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
-const unsandboxed = ['vidtube.site'];
+const unsandboxed = ['vidtube.site','vidwish.live'];
 function updateVid(code, provider, extra='') {
   let iframe = document.querySelector('iframe');
   iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
