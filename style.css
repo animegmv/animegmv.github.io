@@ -93,6 +93,13 @@ iframe {
   border-radius: 0.5rem;
   overflow: hidden;
 }
+.anime > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+.anime img {
+  max-width: 30dvw;
+}
 .stat {
   display: flex;
   justify-content: center;
