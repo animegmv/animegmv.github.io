@@ -52,6 +52,25 @@ function geturl(url) {
       });
   });
 }
+function getadvancedurl(url, opts) {
+  return new Promise((resolve, reject) => {
+    let k = url+'-'+JSON.stringify(opts);
+    if (fetchCache[k]) {
+      resolve(fetchCache[k]);
+      return;
+    }
+    fetch(`https://api.fsh.plus/request?url=${encodeURIComponent(url)}`, {
+      method: 'POST',
+      body: JSON.stringify(opts)
+    })
+      .then(dat=>dat.json())
+      .then(res=>{
+        res = JSON.parse(res.content);
+        fetchCache[k] = res;
+        resolve(res);
+      });
+  });
+}
 function videoWithRefer(url, refer) {
   return new Promise((resolve, reject) => {
     if (fetchCache[url]) {
@@ -104,7 +123,7 @@ XMLHttpRequest.prototype.open = function (method, url, ...rest) {
   });
 }
 function getImgUrl(url) {
-  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com'].includes(new URL(url).hostname)) return url;
+  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co'].includes(new URL(url).hostname)) return url;
   return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`;
 }
 function download(url, name, id) {
@@ -121,7 +140,7 @@ function showSearch(con) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
 ${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${con.length>[23,23,19,35,35,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
+${con.length>[23,23,19,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title.replaceAll('"','”')}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}" loading="lazy"><span>${m.title}</span></div>`).join('')}
 </div>`;
@@ -181,24 +200,22 @@ function search() {
         })
       break;
     case 3:
-    case 4:
-    case 5:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/${quer===''?'recently-updated':'search'}?keyword=${quer}&page=${page}`)
+      geturl(`https://anikototv.to/filter?keyword=${quer}&page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
-          let con = Array.from(doc.querySelector('div.film_list-wrap').querySelectorAll('div.flw-item'))
+          let con = Array.from(doc.getElementById('list-items').querySelectorAll('.item'))
             .map(m => {
               return {
-                id: m.querySelector('h3.film-name a').href.split('/').slice(-1)[0].split('?')[0],
-                title: m.querySelector('h3.film-name a').innerText.replaceAll("'","&#39;"),
-                img: getImgUrl(m.querySelector('img.film-poster-img').getAttribute('data-src'))
+                id: m.querySelector('.name').href.split('watch/')[1].split('/')[0],
+                title: m.querySelector('.name').innerText.replaceAll("'","&#39;"),
+                img: getImgUrl(m.querySelector('img').src)
               };
             });
           showSearch(con);
         })
       break;
-    case 6:
+    case 4:
       geturl(`https://jkanime.net/${quer===''?'':'buscar'}/${quer}?page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
@@ -214,7 +231,7 @@ function search() {
           showSearch(con);
         })
       break;
-    case 7:
+    case 5:
       geturl(`https://dopebox.to/${quer===''?'home':'search'}/${quer.replaceAll(' ','+')}?page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
@@ -230,7 +247,7 @@ function search() {
           showSearch(con);
         })
       break;
-    case 8:
+    case 6:
       geturl(`https://ww3.animeonline.ninja/page/${page}?s=${quer}`)
         .then(res=>{
           const parser = new DOMParser();
@@ -304,24 +321,29 @@ function episodes() {
         })
       break;
     case 3:
-    case 4:
-    case 5:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/${provider===5?'watch/':''}${state[si].id}`)
+      geturl(`https://anikototv.to/watch/${state[si].id}/ep-1`)
         .then(res=>{
-          let finished = (Array.from(res.matchAll(/<span( class="name")?>(Finished Airing|Currently Airing)<\/span>/g))[0][1]==='Finished Airing');
-          geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/list/${state[si].id.split('-').slice(-1)[0]}`)
+          let id = res.match(/const\smangaId\s=\s([0-9]+);/)[1];
+          getadvancedurl(`https://anikototv.to/ajax/episode/list/${id}`, {
+            method: 'GET',
+            headers: {
+              ...standardHeaders,
+              referer: `https://anikototv.to/watch/${state[si].id}/ep-1`,
+              'x-requested-with': 'XMLHttpRequest'
+            }
+          })
             .then(res2=>{
               const parser = new DOMParser();
-              let doc = parser.parseFromString(JSON.parse(res2).html, 'text/html');
+              let doc = parser.parseFromString(res2.result, 'text/html');
               showEpisodes({
-                finished: finished,
-                next: '',
-                eps: Array.from(doc.querySelectorAll('.ss-list .ssl-item.ep-item, a.item.ep-item')).map(e=>{return { id: e.getAttribute('data-id'), n: e.getAttribute('data-number') }}).reverse()
+                finished: res.includes('<a href="https://anikototv.to/status/finished-airing"> Finished Airing </a>'),
+                next: res.includes('<div class="alert next-episode">')?res.match(/ \(<span class="count-down" data-target="([0-9]+)"/)[1]*1000:'',
+                eps: Array.from(doc.querySelectorAll('li a')).map(e=>{return { id, n: e.getAttribute('data-num') }}).reverse()
               });
             });
         });
       break;
-    case 6:
+    case 4:
       fetch(`https://api.fsh.plus/file?url=${encodeURIComponent(`https://jkanime.net/${state[si].id}`)}`)
         .then(res=>res.text())
         .then(res=>{
@@ -351,7 +373,7 @@ function episodes() {
             });
         });
       break;
-    case 7:
+    case 5:
       showEpisodes({
         finished: true,
         next: '',
@@ -372,15 +394,13 @@ function updateVid(code, provider, extra='') {
       iframe.src = code;
       break;
     case 3:
-    case 4:
-    case 5:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/sources?id=${code}`)
+      geturl(`https://anikototv.to/ajax/episode/sources?id=${code}`)
         .then(async(res)=>{
           res = JSON.parse(res);
-          iframe.srcdoc = await videoWithRefer(res.link, 'https://'+['aniwatchtv','hianime','9animetv'][provider-3]+'.to/');
+          iframe.srcdoc = await videoWithRefer(res.link, 'https://anikototv.to/');
         });
       break;
-    case 7:
+    case 5:
       geturl(`https://dopebox.to/ajax/episode/sources/${code}`)
         .then(async(res)=>{
           res = JSON.parse(res);
@@ -418,32 +438,50 @@ function video() {
         });
       break;
     case 3:
-    case 4:
-    case 5:
-      geturl(`https://${['aniwatchtv','hianime','9animetv'][provider-3]}.to/ajax/${provider===5?'':'v2/'}episode/servers?episodeId=${state[si].id.split('-').slice(-1)[0]}`)
+      getadvancedurl(`https://anikototv.to/ajax/episode/list/${state[si].eid}`, {
+        method: 'GET',
+        headers: {
+          ...standardHeaders,
+          referer: `https://anikototv.to/watch/${state[si].id}/ep-1`,
+          'x-requested-with': 'XMLHttpRequest'
+        }
+      })
         .then(res=>{
           const parser = new DOMParser();
-          let doc = parser.parseFromString(JSON.parse(res).html, 'text/html');
-          let videos = Array.from(doc.querySelectorAll('div.item.server-item'))
-            .map(v => {
-              return {
-                title: v.querySelector('a').innerText,
-                ads: false,
-                code: v.getAttribute('data-id')
-              }
-            });
-          showVideo(videos, provider);
-          updateVid(videos[0].code, provider);
+          let doc = parser.parseFromString(res.result, 'text/html');
+          let dat = doc.querySelector('li a[data-num="'+state[si].e+'"]');
+          //<a href="#" data-id="134028" data-num="1" data-slug="1" data-mal="61483" data-timestamp="1783182658" data-sub="1" data-dub="0" data-ids="dEV4U2RlZmptbFlweStFTUFCMHZqakE2OWVwanF0WjRTdWFsWTkwS1hWSSs2dGVYOVZoNUN0SDh0cDJaTXcwOFVOYlo3K1lxUktHMjgwbjVCd3J1UFZzSWF3WmRpN1ZQY1Z0eURXVXN2U2RudjFkTnl5LzNrem1kQ3NCZS9xWlBkODRhTTNUbDJuaVc4L05maGxCd0NBPT0" class="active  " ><b>1</b>
+          getadvancedurl(`https://anikototv.to/ajax/server/list?servers=${dat.getAttribute('data-ids')}`, {
+            method: 'GET',
+            headers: {
+              ...standardHeaders,
+              referer: `https://anikototv.to/watch/${state[si].id}/ep-1`,
+              'x-requested-with': 'XMLHttpRequest'
+            }
+          })
+            .then(res2=>{
+              let serdoc = parser.parseFromString(res2.result, 'text/html');
+              let video = Array.from(serdoc.querySelectorAll('li'))
+                .map(v => {
+                  return {
+                    title: v.innerText,
+                    ads: false,
+                    code: v.getAttribute('data-link-id')
+                  }
+                });
+              showVideo(videos, provider);
+              updateVid(videos[0].code, provider, videos[0].title);
+            })
         });
       break;
-    case 7:
+    case 5:
       geturl(`https://dopebox.to/ajax/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
         .then(res=>{
           const parser = new DOMParser();
           let doc = parser.parseFromString(res, 'text/html');
           let videos = Array.from(doc.querySelectorAll('a')).map(e=>{return { title: e.querySelector('span').innerText, ads: false, code: e.getAttribute('data-id') }});
           showVideo(videos, provider);
-          updateVid(videos[0].code, provider);
+          updateVid(videos[0].code, provider, videos[0].title);
         });
       break;
   }
@@ -472,13 +510,11 @@ function setTop() {
   <option value="1">animeflv.one</option>
   <option value="2">animeflv.ar</option>
   <option disabled>-- Experimental --</option>
-  <option value="3">aniwatchtv.to</option>
-  <option value="4">hianime.to</option>
-  <option value="5">9animetv.to</option>
-  <option value="6">jkanime.net</option>
-  <option value="7">dopebox.to</option>
-  <option value="8">animeonline.ninja</option>
-</select>`;// animeav1.org hentaijk.com
+  <option value="3">anikototv.to</option>
+  <option value="4">jkanime.net</option>
+  <option value="5">dopebox.to</option>
+  <option value="6">animeonline.ninja</option>
+</select>`;// hentaijk.com
       document.getElementById('provider').value = state[si].provider??0;
       document.getElementById('provider').onchange = (evt)=>{
         state[state.length] = state[si];
