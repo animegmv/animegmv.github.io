@@ -227,10 +227,9 @@ function search() {
         })
       break;
     case 5:
-      geturl(`https://dopebox.to/${quer===''?'home':'search'}/${quer.replaceAll(' ','+')}?page=${page}`)
+      geturl(`https://api.themoviedb.org/3/${quer===''?'movie/now_playing':'search/multi'}?api_key=abbf502ad7ef5458bf0b91e09d5043c0${quer?'&query='+quer:''}&page=${page}`)
         .then(res=>{
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(res, 'text/html');
+          res = JSON.parse(res);
           let con = Array.from(doc.querySelector('div.film_list-wrap').querySelectorAll('div.flw-item'))
             .map(m => {
               return {
