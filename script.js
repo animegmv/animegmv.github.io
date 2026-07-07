@@ -531,13 +531,13 @@ function setTop() {
 <button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();">Search</button>
 <span style="flex:1"></span>
 <select id="provider">
-  <option disabled>-- Main --</option>
+  <option disabled>———— Main ————</option>
   <option value="0">animeflv.net</option>
   <option value="1">animeflv.one</option>
   <option value="2">animeflv.ar</option>
   <option value="3">anikototv.to</option>
   <option value="5">123moviesgot.pages.dev</option>
-  <option disabled>-- WIP --</option>
+  <option disabled>———— WIP ————</option>
   <option value="4">jkanime.net</option>
   <option value="6">animeonline.ninja</option>
 </select>`;// hentaijk.com
