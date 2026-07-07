@@ -96,6 +96,7 @@ iframe {
 .anime > div:first-child {
   display: flex;
   flex-direction: column;
+  height: fit-content;
 }
 .anime img {
   max-width: 30dvw;
