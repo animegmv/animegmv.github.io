@@ -159,8 +159,8 @@ function search() {
                 img: getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1])
               };
             });
-          showSearch(con);
-        })
+          showSearch(con, con.length>23);
+        });
       break;
     case 1:
       geturl(`https://animeflv.one/animes?buscar=${quer}&pag=${page}`)
@@ -175,7 +175,7 @@ function search() {
                 img: getImgUrl(m.match(/<img.*? data-src="(.*?)" .*?>/)[1])
               };
             });
-          showSearch(con);
+          showSearch(con, con.length>23);
         })
       break;
     case 2:
@@ -191,7 +191,7 @@ function search() {
                 img: getImgUrl(m.match(/<img.*?src="(.*?)".*?>/)[1])
               };
             });
-          showSearch(con);
+          showSearch(con, con.length>19);
         })
       break;
     case 3:
@@ -207,15 +207,32 @@ function search() {
                 img: getImgUrl(m.querySelector('img').src)
               };
             });
-          showSearch(con);
+          showSearch(con, con.length>29);
         })
       break;
     case 4:
-      geturl(`https://jkanime.net/${quer===''?'':'buscar'}/${quer}?page=${page}`)
+      if (quer==='') {
+        geturl(`https://jkanime.net/directorio?p=${page}`)
+          .then(res=>{
+            res = JSON.parse(res.match(/var animes = ([^☺]+?);\n/)[1]);
+            let con = res.data
+              .filter(m=>m.estado!=='Por estrenar')
+              .map(m => {
+                return {
+                  id: m.slug,
+                  title: m.title.replaceAll("'","&#39;"),
+                  img: getImgUrl(m.image)
+                };
+              });
+            showSearch(con, !!res.next_page_url);
+          });
+        return;
+      }
+      geturl(`https://jkanime.net/buscar/${quer}?page=${page}`)
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
-          let con = Array.from(doc.querySelector('div.tab-content, div.page_directorio').querySelectorAll('div.card, div.anime__item'))
+          let con = Array.from(doc.querySelectorAll('.page_directorio > div'))
             .map(m => {
               return {
                 id: m.querySelector('a').href.split('/')[3],
@@ -223,8 +240,8 @@ function search() {
                 img: m.querySelector('div.anime__item__pic.set-bg')?getImgUrl(m.querySelector('div.anime__item__pic.set-bg').getAttribute('data-setbg')):getImgUrl(m.querySelector('img.card-img-top').src)
               };
             });
-          showSearch(con);
-        })
+          showSearch(con, false);
+        });
       break;
     case 5:
       geturl(`https://api.themoviedb.org/3/${quer===''?'movie/now_playing':'search/multi'}?api_key=abbf502ad7ef5458bf0b91e09d5043c0&include_adult=true${quer?'&query='+quer:''}&page=${page}`)
@@ -255,7 +272,7 @@ function search() {
                 img: getImgUrl(m.querySelector('.thumbnail img').getAttribute('data-src'))
               };
             });
-          showSearch(con);
+          showSearch(con, con.length>29);
         });
       break;
   }
