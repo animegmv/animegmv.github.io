@@ -118,7 +118,7 @@ XMLHttpRequest.prototype.open = function (method, url, ...rest) {
   });
 }
 function getImgUrl(url) {
-  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co'].includes(new URL(url).hostname)) return url;
+  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org'].includes(new URL(url).hostname)) return url;
   return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`;
 }
 function download(url, name, id) {
@@ -131,11 +131,11 @@ function download(url, name, id) {
   a.remove();
 }
 
-function showSearch(con) {
+function showSearch(con, next_page=false) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
 ${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${con.length>[23,23,19,29,999,31,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
+${next_page||con.length>[23,23,19,29,999,Infinity,29][state[si].provider]?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title.replaceAll('"','”')}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky"><img src="${m.img}" loading="lazy"><span>${m.title}</span></div>`).join('')}
 </div>`;
@@ -227,18 +227,19 @@ function search() {
         })
       break;
     case 5:
-      geturl(`https://api.themoviedb.org/3/${quer===''?'movie/now_playing':'search/multi'}?api_key=abbf502ad7ef5458bf0b91e09d5043c0${quer?'&query='+quer:''}&page=${page}`)
+      geturl(`https://api.themoviedb.org/3/${quer===''?'movie/now_playing':'search/multi'}?api_key=abbf502ad7ef5458bf0b91e09d5043c0&include_adult=true${quer?'&query='+quer:''}&page=${page}`)
         .then(res=>{
           res = JSON.parse(res);
-          let con = Array.from(doc.querySelector('div.film_list-wrap').querySelectorAll('div.flw-item'))
+          let con = res.results
+            .filter(m=>m.media_type!=='person')
             .map(m => {
               return {
-                id: m.querySelector('a').href.split('/').slice(-1)[0],
-                title: m.querySelector('h2 a,h3 a').innerText.replaceAll("'","&#39;"),
-                img: getImgUrl(m.querySelector('img').getAttribute('data-src'))
+                id: (quer===''?'movie':m.media_type)+'-'+m.id,
+                title: m.title??m.name,
+                img: getImgUrl('https://image.tmdb.org/t/p/w500/'+m.poster_path)
               };
             });
-          showSearch(con);
+          showSearch(con, page<res.total_pages);
         })
       break;
     case 6:
@@ -368,11 +369,31 @@ function episodes() {
         });
       break;
     case 5:
-      showEpisodes({
-        finished: true,
-        next: '',
-        eps: [{ id: state[si].id, n: 1 }]
-      });
+      if (state[si].id.startsWith('movie-')) {
+        showEpisodes({
+          finished: true,
+          next: '',
+          eps: [{ id: state[si].id, n: 1 }]
+        });
+        return;
+      }
+      geturl(`https://api.themoviedb.org/3/${state[si].id.replace('-','/')}?api_key=abbf502ad7ef5458bf0b91e09d5043c0`)
+        .then(async(res)=>{
+          res = JSON.parse(res);
+          let episodes = [];
+          for (let i = 0; i<res.number_of_seasons; i++) {
+            let season = await geturl(`https://api.themoviedb.org/3/${state[si].id.replace('-','/')}/season/${i+1}?api_key=abbf502ad7ef5458bf0b91e09d5043c0`);
+            season = JSON.parse(season);
+            episodes = episodes.concat(season.episodes
+              .filter(ep=>new Date(ep.air_date)<Date.now())
+              .map(ep=>{return { id: ep.id, n: ep.episode_number+episodes.length }}));
+          }
+          showEpisodes({
+            finished: res.status==='Ended',
+            next: res.next_episode_to_air?res.next_episode_to_air.air_date:'',
+            eps: episodes
+          });
+        });
       break;
   }
 }
