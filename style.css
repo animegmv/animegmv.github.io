@@ -1,44 +1,53 @@
+:root {
+  --text: #fff;
+  --input: #222;
+  --input-border: #444;
+  --background: #000;
+}
 body {
+  font-family: Arial;
+  color: var(--text);
   width: 100vw;
   max-width: 1250px;
-  color: #fff;
   margin: 0px auto;
-  background: black;
-  font-family: Arial;
+  background: var(--background);
 }
 p {
   margin: 6px 0px;
   width: fit-content;
 }
 input, button, select {
-  color: #fff;
-  background: #222;
+  color: currentColor;
   margin: 2px;
   padding: 2px 4px;
-  border: 2px #444 solid;
-  border-radius: 0.75rem;
+  border: 2px var(--input-border) solid;
+  border-radius: 0.25rem;
+  background: var(--input);
 }
 button {
-  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background .25s;
 }
 button:hover {
-  background: #444;
+  background: var(--input-border);
 }
 button[disabled] {
-  color: #ddd;
-  background: #111;
+  color: var(--input-border);
+  background: var(--background);
   cursor: not-allowed;
 }
 select {
   padding: 1px;
-  border-radius: 0.25rem;
+}
+option[disabled] {
+  text-align: center;
 }
 .clicky {
   cursor: pointer;
   border-radius: 0.25rem;
 }
 .clicky:hover {
-  background: #222;
+  background: var(--input);
 }
 #top {
   display: flex;
@@ -48,9 +57,6 @@ select {
 #top input {
   margin: 0px;
 }
-#provider {
-  margin-right: 40px;
-}
 div:has(>iframe) {
   display: flex;
   justify-content: center;
@@ -59,7 +65,7 @@ iframe {
   width: 100vw;
   max-width: 1250px;
   aspect-ratio: 16/9;
-  border: 1px #444 solid;
+  border: 1px var(--input-border) solid;
   box-sizing: border-box;
   user-select: none;
 }
@@ -72,8 +78,8 @@ iframe {
 .wrap div {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  flex: 0 0 calc(20% - (4 * 1em) / 5);
+  min-width: 200px;
+  flex: 1 0 calc(20% - (4 * 1em) / 5);
 }
 .wrap div img {
   width: 100%;
@@ -81,8 +87,7 @@ iframe {
   margin: auto;
 }
 .wrap div span {
-  height: 3.50em;
-  font-size: 75%;
+  flex: 1;
   overflow: hidden;
 }
 .anime {
@@ -118,5 +123,5 @@ iframe {
   bottom: 0px;
   width: 100vw;
   height: 100vh;
-  background: #111;
+  background: var(--background);
 }
