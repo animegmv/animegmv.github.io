@@ -270,7 +270,7 @@ function showEpisodes(res) {
     <b>Episodes</b>
     <br>
     ${res.next ? 'Next episode: '+new Date(res.next).toLocaleString(navigator, { dateStyle: 'short' }) : ''}
-    ${res.eps.map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${e.n}',eid:'${e.id}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">EP ${e.n}</li>`).join('')}
+    ${res.eps.map(e=>`<li onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,es:'${e.s}',e:'${e.n}',eid:'${e.id}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">${e.s?`S ${e.s} `:''}EP ${e.n}</li>`).join('')}
   </div>
 </div>`;
 }
@@ -386,12 +386,12 @@ function episodes() {
             season = JSON.parse(season);
             episodes = episodes.concat(season.episodes
               .filter(ep=>new Date(ep.air_date)<Date.now())
-              .map(ep=>{return { id: ep.id, n: ep.episode_number+episodes.length }}));
+              .map(ep=>{return { id: ep.id, n: ep.episode_number, s: i+1 }}));
           }
           showEpisodes({
             finished: res.status==='Ended',
             next: res.next_episode_to_air?res.next_episode_to_air.air_date:'',
-            eps: episodes
+            eps: episodes.toReversed()
           });
         });
       break;
@@ -399,12 +399,10 @@ function episodes() {
 }
 
 const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
-const unsandboxed = ['vidtube.site','vidwish.live'];
+const unsandboxed = ['vidtube.site','vidwish.live','vidsrcme.su'];
 function updateVid(code, provider, extra='') {
   let iframe = document.querySelector('iframe');
-  iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
-  iframe.removeAttribute('src');
-  iframe.removeAttribute('srcdoc');
+  if (extra) iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
   function setUrl(url) {
     iframe[unsandboxed.includes(new URL(url).hostname)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
     iframe.src = url;
@@ -414,6 +412,9 @@ function updateVid(code, provider, extra='') {
     case 1:
     case 2:
       iframe.src = code;
+      break;
+    case 5:
+      setUrl(code);
       break;
     case 3:
       getadvancedurl(`https://anikototv.to/ajax/server?get=${code}`, {
@@ -426,13 +427,6 @@ function updateVid(code, provider, extra='') {
       })
         .then(res=>{
           setUrl(res.result.url);
-        });
-      break;
-    case 5:
-      geturl(`https://dopebox.to/ajax/episode/sources/${code}`)
-        .then(async(res)=>{
-          res = JSON.parse(res);
-          iframe.srcdoc = await videoWithRefer(res.link, 'https://dopebox.to/');
         });
       break;
   }
@@ -478,7 +472,6 @@ function video() {
           const parser = new DOMParser();
           let doc = parser.parseFromString(res.result, 'text/html');
           let dat = doc.querySelector('li a[data-num="'+state[si].e+'"]');
-          //<a href="#" data-id="134028" data-num="1" data-slug="1" data-mal="61483" data-timestamp="1783182658" data-sub="1" data-dub="0" data-ids="dEV4U2RlZmptbFlweStFTUFCMHZqakE2OWVwanF0WjRTdWFsWTkwS1hWSSs2dGVYOVZoNUN0SDh0cDJaTXcwOFVOYlo3K1lxUktHMjgwbjVCd3J1UFZzSWF3WmRpN1ZQY1Z0eURXVXN2U2RudjFkTnl5LzNrem1kQ3NCZS9xWlBkODRhTTNUbDJuaVc4L05maGxCd0NBPT0" class="active  " ><b>1</b>
           getadvancedurl(`https://anikototv.to/ajax/server/list?servers=${dat.getAttribute('data-ids')}`, {
             method: 'GET',
             headers: {
@@ -498,27 +491,32 @@ function video() {
                   }
                 });
               showVideo(videos, provider);
-              updateVid(videos[0].code, provider, videos[0].title);
+              updateVid(videos[0].code, provider);
             })
         });
       break;
     case 5:
-      geturl(`https://dopebox.to/ajax/episode/list/${state[si].id.split('-').slice(-1)[0]}`)
+      geturl(`https://api.themoviedb.org/3/${state[si].id.replace('-','/')}?api_key=abbf502ad7ef5458bf0b91e09d5043c0`)
         .then(res=>{
-          const parser = new DOMParser();
-          let doc = parser.parseFromString(res, 'text/html');
-          let videos = Array.from(doc.querySelectorAll('a')).map(e=>{return { title: e.querySelector('span').innerText, ads: false, code: e.getAttribute('data-id') }});
+          res = JSON.parse(res);
+          let videos = [];
+          if (state[si].id.startsWith('movie-')) {
+            videos = [{ title: 'VidSrcMe', ads: false, code: 'https://vidsrcme.su/embed/movie?imdb='+res.imdb_id }];
+          } else {
+            videos = [{ title: 'VidSrcMe', ads: false, code: `https://vidsrcme.su/embed/tv?tmdb=${res.id}&season=${state[si].es}&episode=${state[si].e}` }];
+          }
           showVideo(videos, provider);
-          updateVid(videos[0].code, provider, videos[0].title);
+          updateVid(videos[0].code, provider);
         });
       break;
   }
 }
 
-var state = [{page:'search',q:'',n:1,provider:0}];
+var state = [{ page: 'search', q: '', n: 1, provider: 0 }];
 var si = 0;
 if (location.hash) {
   state.push(JSON.parse(decodeURIComponent(location.hash.slice(1))));
+  state[0].provider = state[1].provider||0;
   si += 1;
 }
 
@@ -538,9 +536,9 @@ function setTop() {
   <option value="1">animeflv.one</option>
   <option value="2">animeflv.ar</option>
   <option value="3">anikototv.to</option>
+  <option value="5">123moviesgot.pages.dev</option>
   <option disabled>-- WIP --</option>
   <option value="4">jkanime.net</option>
-  <option value="5">dopebox.to</option>
   <option value="6">animeonline.ninja</option>
 </select>`;// hentaijk.com
       document.getElementById('provider').value = state[si].provider??0;
@@ -558,7 +556,7 @@ function setTop() {
       episodes();
       break;
     case 'vid':
-      top.innerHTML += `${state[si].t} - ${state[si].e}`;
+      top.innerHTML += `${state[si].t} - ${state[si].es?`S ${state[si].es} `:''}EP ${state[si].e}`;
       video();
       break;
     default:
