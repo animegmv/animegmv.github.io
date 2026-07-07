@@ -556,7 +556,7 @@ function setTop() {
       episodes();
       break;
     case 'vid':
-      top.innerHTML += `${state[si].t} - ${state[si].es?`S ${state[si].es} `:''}EP ${state[si].e}`;
+      top.innerHTML += `${state[si].t} - ${state[si].es&&state[si].es!=='undefined'?`S ${state[si].es} `:''}EP ${state[si].e}`;
       video();
       break;
     default:
