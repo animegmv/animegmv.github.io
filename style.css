@@ -79,7 +79,7 @@ iframe {
   display: flex;
   flex-direction: column;
   min-width: 200px;
-  flex: 1 0 calc(20% - (4 * 1em) / 5);
+  flex: 0 0 calc(20% - (4 * 1em) / 5);
 }
 .wrap div img {
   width: 100%;
