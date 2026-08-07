@@ -17,20 +17,18 @@ https://cors.bbear.workers.dev/?
 */
 window.console.clear = ()=>{};
 const standardHeaders = {
-  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
   accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-  'accept-language': 'en-US,en;q=1',
+  'accept-language': 'en-US,en;q=0.9',
   'cache-control': 'no-cache',
   pragma: 'no-cache',
   priority: 'u=0, i',
-  'sec-ch-ua': '"Google Chrome";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
+  'sec-ch-ua': '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
   'sec-ch-ua-mobile': '?0',
   'sec-ch-ua-platform': '"Windows"',
-  'sec-fetch-mode': 'navigate',
-  'sec-fetch-site': 'cross-site',
-  'sec-fetch-storage-access': 'active',
-  'sec-fetch-user': '?1',
-  'upgrade-insecure-requests': '1'
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-site': 'same-origin',
+  'sec-fetch-user': '?1'
 };
 let fetchCache = {};
 function geturl(url) {
@@ -47,7 +45,7 @@ function geturl(url) {
       });
   });
 }
-function getadvancedurl(url, opts) {
+function getadvancedurl(url, opts, parse=true) {
   return new Promise((resolve, reject) => {
     let k = url+'-'+JSON.stringify(opts);
     if (fetchCache[k]) {
@@ -60,7 +58,7 @@ function getadvancedurl(url, opts) {
     })
       .then(dat=>dat.json())
       .then(res=>{
-        res = JSON.parse(res.content);
+        if (parse) res = JSON.parse(res.content);
         fetchCache[k] = res;
         resolve(res);
       });
@@ -279,6 +277,50 @@ function search() {
           showSearch(con, con.length>29);
         });
       break;
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+      geturl(`https://www.miruro.${['to','bz','ru','tv'][provider-7]}/env2.js`)
+        .then(env=>{
+          let pipe = env.match(/VITE_PIPE_OBF_KEY\\":\\"([0-9a-f]+)\\"/)[1];
+          pipe = pipe ? new Uint8Array(pipe.match(/.{2}/g).map(e=>parseInt(e, 16))) : null;
+
+          let obj = {path:'search',method:'GET',query: {q:quer,limit:15,offset:(page-1)*15,sort:'POPULARITY_DESC',type:'ANIME'},body:null,version:'0.2.0'};
+          getadvancedurl(`https://www.miruro.${['to','bz','ru','tv'][provider-7]}/api/secure/pipe?e=${window.btoa(JSON.stringify(obj)).replaceAll('+','-').replaceAll('/','_').replace(/=+$/g,'')}`, {
+            headers: {
+              ...standardHeaders,
+              referer: `https://www.miruro.${['to','bz','ru','tv'][provider-7]}/search`
+            }
+          })
+            .then(res=>{
+              let obfuscated = res.headers['x-obfuscated'];
+              let content = res.content;
+              if (obfuscated) {
+                content = content.replaceAll('-','+').replaceAll('_','/');
+                let buff = Uint8Array.from(atob(content+(content.length%4?'='.repeat(4-content.length%4):'')), e=>e.charCodeAt(0));
+                if (obfuscated === '2' && pipe) {
+                  let decode = new Uint8Array(buff.length);
+                  for (let t = 0; t < a.length; t++) decode[t] = buff[t] ^ pipe[t % pipe.length];
+                  buff = decode;
+                }
+                qr = (r)=>r;
+                content = new TextDecoder().decode(qr(buff))
+              }
+              console.log(JSON.parse(content));
+              showSearch([], false/*con.length>29*/);
+
+/*              let con = Array.from(doc.querySelector('div.search-page').querySelectorAll('div.result-item'))
+                .map(m=>{
+                  return {
+                    id: m.querySelector('.details a').href.split('/').slice(-2)[0],
+                    title: m.querySelector('.details a').innerText.replaceAll("'","&#39;"),
+                    img: getImgUrl(m.querySelector('.thumbnail img').getAttribute('data-src'))
+                  };
+                });
+              showSearch(con, con.length>29);*/
+            });
+        });
   }
 }
 function showEpisodes(res) {
@@ -561,6 +603,10 @@ function setTop() {
   <option disabled>———— WIP ————</option>
   <option value="4">jkanime.net</option>
   <option value="6">animeonline.ninja</option>
+  <option value="7">miruro.to</option>
+  <option value="8">miruro.bz</option>
+  <option value="9">miruro.ru</option>
+  <option value="10">miruro.tv</option>
 </select>`;// hentaijk.com
       document.getElementById('provider').value = state[si].provider??0;
       document.getElementById('provider').onchange = (evt)=>{
