@@ -464,7 +464,7 @@ function episodes() {
 }
 
 const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
-const unsandboxed = ['vidtube.site','vidwish.live','vidsrcme.su','myvidplay.com'];
+const unsandboxed = ['vidtube.site','vidwish.live','vidsrcme.su','myvidplay.com','megaplay.buzz'];
 function updateVid(code, provider, extra='') {
   let iframe = document.querySelector('iframe');
   if (extra) iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
