@@ -130,9 +130,9 @@ function download(url, name, id) {
 
 function showSearch(con, next_page=false) {
   document.getElementById('results').innerHTML = `<p>${con.length} results</p>
-${state[si].n>1?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n-1},provider:state[si].provider};si=state.length-1;setTop();">Prev</button>`:''}
+${state[si].n>1?`<button onclick="si=state.length;state[si]=state[si-1];state[si].n=${state[si].n-1};setTop();">Prev</button>`:''}
 ${state[si].n>1?state[si].n:''}
-${next_page?`<button onclick="state[state.length]={page:'search',q:state[si].q,n:${state[si].n+1},provider:state[si].provider};si=state.length-1;setTop();">Next</button>`:''}
+${next_page?`<button onclick="si=state.length;state[si]=state[si-1];state[si].n=${state[si].n+1};setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title.replaceAll('"','”')}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">
   <img src="${m.img}" loading="lazy">
@@ -505,11 +505,11 @@ function showVideo(videos, provider) {
   <iframe allowfullscreen referrerpolicy="no-referrer" sandbox="allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin" allow="autoplay; compute-pressure; cross-origin-isolated; encrypted-media; fullscreen; gamepad; local-fonts; midi; picture-in-picture; screen-wake-lock; speaker-selection; storage-access; web-share"></iframe>
 </div>
 <span style="display:flex">
-  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e-1)}',provider:state[si].provider};si=state.length-1;setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
+  <button onclick="si=state.length;state[si]=state[si-1];state[si].e='${Number(state[si].e)-1}';setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
   <span style="flex:1"></span>
   <button onclick="download('${videos[0]?.url}', '${state[si].t}', '${state[si].id}')" style="display:none">Download</button>
   <span style="flex:1"></span>
-  <button onclick="state[state.length]={page:'vid',id:'${state[si].id}',t:\`${state[si].t}\`,e:'${Number(state[si].e)+1}',provider:state[si].provider};si=state.length-1;setTop();">Next</button>
+  <button onclick="si=state.length;state[si]=state[si-1];state[si].e='${Number(state[si].e)+1}';setTop();">Next</button>
 </span>`;
 }
 function video() {
