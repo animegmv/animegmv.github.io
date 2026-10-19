@@ -16,6 +16,7 @@ https://cors.luckydesigner.workers.dev/?
 https://cors.bbear.workers.dev/?
 */
 window.console.clear = ()=>{};
+const defaultProvider = 3;
 const standardHeaders = {
   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
   accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -115,7 +116,7 @@ XMLHttpRequest.prototype.open = function (method, url, ...rest) {
   });
 }
 function getImgUrl(url) {
-  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru'].includes(new URL(url).hostname)) return url;
+  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co'].includes(new URL(url).hostname)) return url;
   return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`;
 }
 function download(url, name, id) {
@@ -137,7 +138,7 @@ ${next_page?`<button onclick="si=state.length;state[si]=state[si-1];state[si].n=
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title.replaceAll('"','”')}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">
   <img src="${m.img}" loading="lazy">
   <div class="shadow"></div>
-  <span>${m.title}</span>
+  <span title="${m.title}">${m.title}</span>
 </div>`).join('')}
 </div>`;
 }
@@ -145,22 +146,20 @@ function search() {
   if (state[si].q==='doom') location.href='/doom';
   let page = state[si].n;
   let quer = state[si].q;
-  let provider = state[si].provider??0;
+  let provider = state[si].provider??defaultProvider;
   switch (provider) {
     case 0:
-      geturl(`https://www3.animeflv.net/browse?q=${quer}&page=${page}`)
+      geturl(`https://reanime.to/api/v1/search?limit=30&q=${quer}&offset=${(page-1)*30}`)
         .then(res=>{
-          let con = Array.from(res
-            .match(/<!--<Animes>-->(?:[^¬]|¬)*?<!--<\/Animes>-->/g)[0]
-            .match(/<article class="Anime.*?>(?:[^¬]|¬)*?<\/article>/g) ?? [])
+          let con = JSON.parse(res).results
             .map(m => {
               return {
-                id: m.match(/<a href=".*?">/g)[0].split('"')[1].split('/').slice(-1)[0],
-                title: m.match(/<h3 class="Title">.*?<\/h3>/g)[0].split('>')[1].split('<')[0].replaceAll("'","&#39;"),
-                img: getImgUrl(m.match(/<img src="(.*?)" alt.*?>/g)[0].split('"')[1])
+                id: m.anime_id,
+                title: m.title.english||m.title.romaji||m.title.native,
+                img: m.cover_image.extra_large
               };
             });
-          showSearch(con, con.length>23);
+          showSearch(con, con.length>29);
         });
       break;
     case 1:
@@ -339,12 +338,21 @@ function showEpisodes(res) {
 </div>`;
 }
 function episodes() {
-  let provider = state[si].provider??0;
+  let provider = state[si].provider??defaultProvider;
   switch(provider) {
     case 0:
+      geturl(`https://reanime.to/watch/${state[si].id}?ep=1`)
+        .then(res=>{
+          showEpisodes({
+            finished: res.includes(',status:"Finished",'),
+            next: res.includes('next_airing_episode:null')?null:res.match(/,next_airing_episode:\{airing_at:"([0-9TZ:\-]+)"/)[1],
+            eps: JSON.parse(res.replaceAll(/,titles:\["[^\"]+"\]/g,'').match(/,episodes:(\[[^\]]+\])/)[1].replaceAll(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')).map(ep=>{return { id: ep.episodeId, n: ep.number }}).toReversed()
+          });
+        });
+      break;
     case 1:
     case 2:
-      geturl(`https://${['www3.animeflv.net','animeflv.one','animeflv.ar'][provider]}/anime/${state[si].id}`)
+      geturl(`https://${['animeflv.one','animeflv.ar'][provider-1]}/anime/${state[si].id}`)
         .then(res=>{
           let data = {};
           switch(provider) {
@@ -377,7 +385,7 @@ function episodes() {
               break;
           }
           showEpisodes(data);
-        })
+        });
       break;
     case 3:
     case 4:
@@ -474,6 +482,7 @@ function updateVid(code, provider, extra='') {
   }
   switch(provider) {
     case 0:
+      break;
     case 1:
     case 2:
       iframe.src = code;
@@ -513,9 +522,10 @@ function showVideo(videos, provider) {
 </span>`;
 }
 function video() {
-  let provider = state[si].provider??0;
+  let provider = state[si].provider??defaultProvider;
   switch (provider) {
     case 0:
+      break;
     case 1:
     case 2:
       geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
@@ -579,17 +589,17 @@ function video() {
   }
 }
 
-var state = [{ page: 'search', q: '', n: 1, provider: 0 }];
+var state = [{ page: 'search', q: '', n: 1, provider: defaultProvider }];
 var si = 0;
 if (location.hash) {
   state.push(JSON.parse(decodeURIComponent(location.hash.slice(1))));
-  state[0].provider = state[1].provider||0;
+  state[0].provider = state[1].provider??defaultProvider;
   si += 1;
 }
 
 function setTop() {
   if (si>0) history.replaceState(null, null, '#'+JSON.stringify(state.slice(-1)[0]));
-  let prov = document.getElementById('provider')?.value??(state[si].provider??0);
+  let prov = document.getElementById('provider')?.value??(state[si].provider??defaultProvider);
   let top = document.getElementById('top');
   top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
   switch (state[si].page) {
@@ -598,14 +608,15 @@ function setTop() {
 <button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();">Search</button>
 <span style="flex:1"></span>
 <select id="provider">
-  <option disabled>———— Main ————</option>
-  <option value="0">animeflv.net</option>
-  <option value="1">animeflv.one</option>
-  <option value="2">animeflv.ar</option>
+  <option disabled>————— Anime —————</option>
   <option value="3">anikototv.to</option>
   <option value="4">aniwaves.ru</option>
+  <option value="1">animeflv.one</option>
+  <option value="2">animeflv.ar</option>
+  <option disabled>————— Movies —————</option>
   <option value="5">123moviesgot.pages.dev</option>
-  <option disabled>———— WIP ————</option>
+  <option disabled>—————— WIP ——————</option>
+  <option value="0">reanime.to</option>
   <option value="6">animeonline.ninja</option>
   <option value="7">jkanime.net</option>
   <option value="8">miruro.to</option>
@@ -613,12 +624,12 @@ function setTop() {
   <option value="10">miruro.ru</option>
   <option value="11">miruro.tv</option>
 </select>`;// hentaijk.com
-      document.getElementById('provider').value = state[si].provider??0;
+      document.getElementById('provider').value = state[si].provider??defaultProvider;
       document.getElementById('provider').onchange = (evt)=>{
         state[state.length] = state[si];
         si=state.length-1;
         state[si].n = 1;
-        state[si].provider = Number(evt.target.value)??0;
+        state[si].provider = Number(evt.target.value)??defaultProvider;
         setTop();
       };
       search();
