@@ -116,7 +116,7 @@ XMLHttpRequest.prototype.open = function (method, url, ...rest) {
   });
 }
 function getImgUrl(url) {
-  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co'].includes(new URL(url).hostname)) return url;
+  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co','cdn.animeav1.com','i0.wp.com'].includes(new URL(url).hostname)) return url;
   return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`;
 }
 function download(url, name, id) {
@@ -282,7 +282,7 @@ function search() {
     case 11:
       geturl(`https://www.miruro.${['to','bz','ru','tv'][provider-8]}/env2.js`)
         .then(env=>{
-          let pipe = env.match(/VITE_PIPE_OBF_KEY\\":\\"([0-9a-f]+)\\"/)[1];
+          let pipe = env.match(/VITE_PROXY_OBF_KEY":"([0-9a-f]+)"/)[1];
           pipe = pipe ? new Uint8Array(pipe.match(/.{2}/g).map(e=>parseInt(e, 16))) : null;
 
           let obj = {path:'search',method:'GET',query: {q:quer,limit:15,offset:(page-1)*15,sort:'POPULARITY_DESC',type:'ANIME'},body:null,version:'0.2.0'};
@@ -319,6 +319,38 @@ function search() {
                 });
               showSearch(con, con.length>29);*/
             });
+        });
+      break;
+    case 12:
+      geturl(`https://animeav1.com/catalogo?search=${quer}&page=${page}`)
+        .then(res=>{
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(res, 'text/html');
+          let con = Array.from(doc.querySelector('main>section>div.grid').querySelectorAll('article'))
+            .map(m => {
+              return {
+                id: m.querySelector('a').href.split('/')[2],
+                title: m.querySelector('h3').innerText.replaceAll("'","&#39;"),
+                img: getImgUrl(m.querySelector('img').src)
+              };
+            });
+          showSearch(con, false);
+        });
+      break;
+    case 13:
+      geturl(`https://hianimeb.de/?s=${quer}&page=${page}`)
+        .then(res=>{
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(res, 'text/html');
+          let con = Array.from(doc.querySelector('.film_list-wrap').querySelectorAll('.flw-item'))
+            .map(m => {
+              return {
+                id: m.querySelector('a').href.split('/')[3],
+                title: m.querySelector('h3 a').innerText.replaceAll("'","&#39;"),
+                img: getImgUrl(m.querySelector('img').getAttribute('data-src'))
+              };
+            });
+          showSearch(con, false);
         });
       break;
   }
@@ -638,6 +670,8 @@ function setTop() {
   <option value="9">miruro.bz</option>
   <option value="10">miruro.ru</option>
   <option value="11">miruro.tv</option>
+  <option value="12">animeav1.com</option>
+  <option value="13">hianimeb.de</option>
 </select>`;// hentaijk.com
       document.getElementById('provider').value = state[si].provider??defaultProvider;
       document.getElementById('provider').onchange = (evt)=>{
