@@ -481,12 +481,11 @@ function updateVid(code, provider, extra='') {
     iframe.src = url;
   }
   switch(provider) {
-    case 0:
-      break;
     case 1:
     case 2:
       iframe.src = code;
       break;
+    case 0:
     case 5:
       setUrl(code);
       break;
@@ -525,6 +524,22 @@ function video() {
   let provider = state[si].provider??defaultProvider;
   switch (provider) {
     case 0:
+      geturl(`https://reanime.to/watch/${state[si].id}?ep=1`)
+        .then(res=>{
+          geturl(`https://reanime.to/api/flix/${res.match(/,anilist_id:([0-9]+)/)[1]}/${state[si].e}?mal=${res.match(/,mal_id:([0-9]+)/)[1]}`)
+            .then(res2=>{
+              res2 = JSON.parse(res2).servers
+                .map(v => {
+                  return {
+                    title: v.serverName+(v.dataType?` (${v.dataType})`:''),
+                    ads: false,
+                    code: v.dataLink
+                  }
+                });
+              showVideo(res2, provider);
+              updateVid(res2[0].code, provider, res2[0].title);
+            });
+        });
       break;
     case 1:
     case 2:
@@ -532,7 +547,7 @@ function video() {
         .then(res=>{
           let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
           showVideo(videos.SUB, provider);
-          updateVid(videos.SUB[0].code, 0, videos.SUB[0].title);
+          updateVid(videos.SUB[0].code, provider, videos.SUB[0].title);
         });
       break;
     case 3:
@@ -611,12 +626,12 @@ function setTop() {
   <option disabled>————— Anime —————</option>
   <option value="3">anikototv.to</option>
   <option value="4">aniwaves.ru</option>
+  <option value="0">reanime.to</option>
   <option value="1">animeflv.one</option>
   <option value="2">animeflv.ar</option>
   <option disabled>————— Movies —————</option>
   <option value="5">123moviesgot.pages.dev</option>
   <option disabled>—————— WIP ——————</option>
-  <option value="0">reanime.to</option>
   <option value="6">animeonline.ninja</option>
   <option value="7">jkanime.net</option>
   <option value="8">miruro.to</option>
