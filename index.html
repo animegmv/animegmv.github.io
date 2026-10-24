@@ -10,12 +10,6 @@
   </head>
   <body>
     <div id="con"><p>Connecting</p></div>
-    <script>
-      fetch('https://api.fsh.plus/time', { signal: AbortSignal.timeout(2500) })
-        .then(res=>res.json())
-        .then(data=>document.getElementById('con').remove())
-        .catch(err=>document.getElementById('con').innerHTML = '<p>Cannot connect</p>');
-    </script>
     <div id="top"></div>
     <script src="/script.js"></script>
     <div id="results"></div>
