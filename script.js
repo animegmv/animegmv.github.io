@@ -21,7 +21,7 @@ function geturl(url) {
       resolve(fetchCache[url]);
       return;
     }
-    fetch(`${proxyUrls[proxy]}${proxy===0?encodeURIComponent(url):url}`)
+    fetch(proxy===proxyUrls.length?url:`${proxyUrls[proxy]}${proxy===0?encodeURIComponent(url):url}`)
       .then(res=>res.text())
       .then(res=>{
         fetchCache[url] = res;
@@ -50,7 +50,7 @@ function getadvancedurl(url, opts, parse=true) {
 }
 function getImgUrl(url) {
   if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co','cdn.animeav1.com','i0.wp.com'].includes(new URL(url).hostname)) return url;
-  return `${proxyUrls[proxy]}${proxy===0?encodeURIComponent(url):url}`;
+  return proxy===proxyUrls.length?url:`${proxyUrls[proxy]}${proxy===0?encodeURIComponent(url):url}`;
 }
 function download(url, name, id) {
   let a = document.createElement('a');
@@ -587,7 +587,7 @@ function setTop() {
       top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter'){state[state.length]={page:'search',q:this.value.trim(),n:1,provider:${state[si].provider}};si=state.length-1;setTop();}" value="${state[si].q}">
 <button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();">Search</button>
 <span style="flex:1"></span>
-${proxy!==0?'<span>Limited access</span>':''}
+${proxy===proxyUrls.length?'<span>Extremly limited access</span>':(proxy!==0?'<span>Limited access</span>':'')}
 <select id="provider">
   <option disabled>————— Anime —————</option>
   <option value="3">anikototv.to</option>
