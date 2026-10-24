@@ -21,7 +21,7 @@ function geturl(url) {
       resolve(fetchCache[url]);
       return;
     }
-    fetch(`${proxyUrls[proxy]}${encodeURIComponent(url)}`)
+    fetch(`${proxyUrls[proxy]}${proxy===0?encodeURIComponent(url):url}`)
       .then(res=>res.text())
       .then(res=>{
         fetchCache[url] = res;
@@ -50,7 +50,7 @@ function getadvancedurl(url, opts, parse=true) {
 }
 function getImgUrl(url) {
   if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co','cdn.animeav1.com','i0.wp.com'].includes(new URL(url).hostname)) return url;
-  return `${proxyUrls[proxy]}${encodeURIComponent(url)}`;
+  return `${proxyUrls[proxy]}${proxy===0?encodeURIComponent(url):url}`;
 }
 function download(url, name, id) {
   let a = document.createElement('a');
