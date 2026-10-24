@@ -85,6 +85,7 @@ iframe {
   padding-bottom: 1em;
   flex: 0 0 calc(20% - 4em / 5);
   background-color: var(--input);
+  overflow: hidden;
   box-sizing: border-box;
 }
 .wrap div > div {
