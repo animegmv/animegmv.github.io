@@ -1,21 +1,21 @@
-/*
-https://api.fsh.plus/file?url=
-https://proxy.khacmanh-info.workers.dev/?url=
-https://proxy.nkm1703.workers.dev/?url=
-https://proxy.uneti-it.workers.dev/?url=
-https://proxy.teamvn1235.workers.dev/?url=
-https://proxy.zeronightpro.workers.dev/?url=
-https://proxy.cskh-n8n.workers.dev/?url=
-https://proxy.manhnguyenict.workers.dev/?url=
-https://proxy.nguyenmanhict.workers.dev/?url=
-https://proxy.cskh-zm.workers.dev/?url=
-https://proxy.tgb6jphrx7.workers.dev/?url=
-https://proxy.manhict.workers.dev/?url=
-https://bypass.manhgdev.workers.dev/?url=
-https://cors.luckydesigner.workers.dev/?
-https://cors.bbear.workers.dev/?
-*/
-window.console.clear = ()=>{};
+let proxy = 0;
+const proxyUrls = ['https://api.fsh.plus/file?url=', 'https://proxy.nkm1703.workers.dev?url=', 'https://proxy.uneti-it.workers.dev?url=', 'https://proxy.manhnguyenict.workers.dev?url=', 'https://proxy.cskh-zm.workers.dev?url=', 'https://proxy.manhict.workers.dev?url=', 'https://cors.luckydesigner.workers.dev?'];
+(async()=>{
+  let con = document.getElementById('con');
+  for (let i=0; i<proxyUrls.length; i++) {
+    con.innerHTML = `<p>Connecting... (${proxy+1}/${proxyUrls.length})</p>`
+    try {
+      let check = await fetch(`${proxyUrls[proxy]}https://api.fsh.plus/time`, { signal: AbortSignal.timeout(2000) });
+      check = await check.json();
+      break;
+    } catch(err) {
+      // Ignore, try next
+    }
+    proxy++;
+  }
+  con.remove();
+})();
+
 const defaultProvider = 3;
 const standardHeaders = {
   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
@@ -37,7 +37,7 @@ function geturl(url) {
       resolve(fetchCache[url]);
       return;
     }
-    fetch(`https://api.fsh.plus/file?url=${encodeURIComponent(url)}`)
+    fetch(`${proxyUrls[proxy]}${encodeURIComponent(url)}`)
       .then(res=>res.text())
       .then(res=>{
         fetchCache[url] = res;
@@ -117,7 +117,7 @@ XMLHttpRequest.prototype.open = function (method, url, ...rest) {
 }
 function getImgUrl(url) {
   if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co','cdn.animeav1.com','i0.wp.com'].includes(new URL(url).hostname)) return url;
-  return `https://api.fsh.plus/file?url=${encodeURIComponent(url)}`;
+  return `${proxyUrls[proxy]}${encodeURIComponent(url)}`;
 }
 function download(url, name, id) {
   let a = document.createElement('a');
@@ -654,6 +654,7 @@ function setTop() {
       top.innerHTML += `<input type="search" id="buswa" onkeyup="if(event.key=='Enter'){state[state.length]={page:'search',q:this.value.trim(),n:1,provider:${state[si].provider}};si=state.length-1;setTop();}" value="${state[si].q}">
 <button onclick="state[state.length]={page:'search',q:document.getElementById('buswa').value,n:1,provider:${state[si].provider}};si=state.length-1;setTop();">Search</button>
 <span style="flex:1"></span>
+${proxy!==0?'<span>Limited access</span>':''}
 <select id="provider">
   <option disabled>————— Anime —————</option>
   <option value="3">anikototv.to</option>
