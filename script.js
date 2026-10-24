@@ -1,21 +1,5 @@
 let proxy = 0;
 const proxyUrls = ['https://api.fsh.plus/file?url=', 'https://proxy.nkm1703.workers.dev?url=', 'https://proxy.uneti-it.workers.dev?url=', 'https://proxy.manhnguyenict.workers.dev?url=', 'https://proxy.cskh-zm.workers.dev?url=', 'https://proxy.manhict.workers.dev?url=', 'https://cors.luckydesigner.workers.dev?'];
-(async()=>{
-  let con = document.getElementById('con');
-  for (let i=0; i<proxyUrls.length; i++) {
-    con.innerHTML = `<p>Connecting... (${proxy+1}/${proxyUrls.length})</p>`
-    try {
-      let check = await fetch(`${proxyUrls[proxy]}https://api.fsh.plus/time`, { signal: AbortSignal.timeout(2000) });
-      check = await check.json();
-      break;
-    } catch(err) {
-      // Ignore, try next
-    }
-    proxy++;
-  }
-  con.remove();
-})();
-
 const defaultProvider = 3;
 const standardHeaders = {
   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
@@ -61,57 +45,6 @@ function getadvancedurl(url, opts, parse=true) {
         if (parse) res = JSON.parse(res.content);
         fetchCache[k] = res;
         resolve(res);
-      });
-  });
-}
-function videoWithRefer(url, refer) {
-  return new Promise((resolve, reject) => {
-    if (fetchCache[url]) {
-      resolve(fetchCache[url]);
-      return;
-    }
-    fetch('https://api.fsh.plus/request?url='+encodeURIComponent(url), {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'GET',
-        headers: {
-          ...standardHeaders,
-          referer: refer
-          //'sec-fetch-dest': 'iframe',
-        }
-      })
-    })
-      .then(res=>res.json())
-      .then(res=>{
-        res.content = `<base href="${res.url}">
-<script type="module">
-window.console.clear = ()=>{};
-document.referrer = '${refer}';
-window.location.assign = ()=>{};
-window.location.replace = ()=>{};
-history.pushState = ()=>{};
-history.replaceState = ()=>{};
-const originalFetch = window.fetch;
-window.fetch = function (...args) {
-  /*if (args[0].includes('/thing/')) {
-    console.warn('Blocked fetch to', args[0]);
-    return Promise.reject(new Error('Blocked URL'));
-  }*/
-  args[0] = 'https://api.fsh.plus/file?url='+encodeURIComponent(args[0]);
-  return originalFetch.apply(this, args);
-};
-const originalOpen = XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-  /*if (url.includes('/thing/')) {
-    console.warn('Blocked XHR to', url);
-    throw new Error('Blocked URL');
-  }*/
-  url = 'https://api.fsh.plus/file?url='+encodeURIComponent(url);
-  return originalOpen.call(this, method, url, ...rest);
-};
-</script>`+res.content.replaceAll(/<meta .*?http-equiv="Content-Security-Policy".*?>/gi, '').replace(/<script async src="https:\/\/www.googletagmanager.com\/gtag\/js\?id=UA-[0-9]+?-[0-9]"><\/script>/gi,'');
-        fetchCache[url] = res.content;
-        resolve(res.content);
       });
   });
 }
@@ -698,4 +631,19 @@ ${proxy!==0?'<span>Limited access</span>':''}
   }
 }
 
-setTop();
+(async()=>{
+  let con = document.getElementById('con');
+  for (let i=0; i<proxyUrls.length; i++) {
+    con.innerHTML = `<p>Connecting... (${proxy+1}/${proxyUrls.length})</p>`
+    try {
+      let check = await fetch(`${proxyUrls[proxy]}https://api.fsh.plus/time`, { signal: AbortSignal.timeout(2000) });
+      check = await check.json();
+      break;
+    } catch(err) {
+      // Ignore, try next
+    }
+    proxy++;
+  }
+  con.remove();
+  setTop();
+})();
