@@ -578,7 +578,7 @@ if (location.hash) {
 }
 
 function setTop() {
-  if (si>0) history.pushState({}, null, '#'+enocodeURIComponent(JSON.stringify(state.slice(-1)[0])));
+  if (si>0) history.pushState({}, null, '#'+encodeURIComponent(JSON.stringify(state.slice(-1)[0])));
   let prov = document.getElementById('provider')?.value??(state[si].provider??defaultProvider);
   let top = document.getElementById('top');
   top.innerHTML = (state.length>1?((si<1?'':'<button onclick="si--;setTop()">Back</button>')+(state.length-1===si?'':'<button onclick="si++;setTop()">Next</button>')):'');
