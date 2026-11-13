@@ -2,13 +2,10 @@ let proxy = 0;
 const proxyUrls = ['https://api.fsh.plus/file?url=', 'https://proxy.nkm1703.workers.dev?url=', 'https://proxy.uneti-it.workers.dev?url=', 'https://proxy.manhnguyenict.workers.dev?url=', 'https://proxy.cskh-zm.workers.dev?url=', 'https://proxy.manhict.workers.dev?url=', 'https://cors.luckydesigner.workers.dev?'];
 const defaultProvider = 3;
 const standardHeaders = {
-  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
-  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
   'accept-language': 'en-US,en;q=0.9',
-  'cache-control': 'no-cache',
-  pragma: 'no-cache',
-  priority: 'u=0, i',
-  'sec-ch-ua': '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
+  'sec-ch-ua': '"Not-A.Brand";v="99", "Google Chrome";v="157", "Chromium";v="157"',
   'sec-ch-ua-mobile': '?0',
   'sec-ch-ua-platform': '"Windows"',
   'sec-fetch-mode': 'cors',
@@ -49,7 +46,7 @@ function getadvancedurl(url, opts, parse=true) {
   });
 }
 function getImgUrl(url) {
-  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co','cdn.animeav1.com','i0.wp.com'].includes(new URL(url).hostname)) return url;
+  if (['animeflv.net','vww.animeflv.one','i1.wp.com','cdn.jkdesa.com','cdn.anipixcdn.co','image.tmdb.org','static.aniwaves.ru','s4.anilist.co','cdn.animeav1.com','i0.wp.com','i1.wp.com','i2.wp.com','i3.wp.com','ww4.animeonline.ninja','static.aniwaves.tv'].includes(new URL(url).hostname)) return url;
   return proxy===proxyUrls.length?url:`${proxyUrls[proxy]}${proxy===0?encodeURIComponent(url):url}`;
 }
 function download(url, name, id) {
@@ -69,7 +66,7 @@ ${state[si].n>1?state[si].n:''}
 ${next_page?`<button onclick="si=state.length;state[si]=state[si-1];state[si].n=${state[si].n+1};setTop();">Next</button>`:''}
 <div class="wrap">
   ${con.map(m=>`<div onclick="state[state.length]={page:'ep',id:'${m.id}',t:\`${m.title.replaceAll('"','”')}\`,img:'${m.img}',provider:state[si].provider};si=state.length-1;setTop();" class="clicky">
-  <img src="${m.img}" loading="lazy">
+  <img src="${m.img}" loading="lazy" referrerpolicy="no-referrer">
   <div class="shadow"></div>
   <span title="${m.title}">${m.title}</span>
 </div>`).join('')}
@@ -170,7 +167,7 @@ function search() {
               return {
                 id: m.querySelector('.details a').href.split('/').slice(-2)[0],
                 title: m.querySelector('.details a').innerText.replaceAll("'","&#39;"),
-                img: getImgUrl(m.querySelector('.thumbnail img').getAttribute('data-src'))
+                img: getImgUrl(m.querySelector('.thumbnail img').getAttribute('data-src').replace('-150x150','')+'?a')
               };
             });
           showSearch(con, con.length>29);
@@ -291,8 +288,8 @@ function search() {
 function showEpisodes(res) {
   document.getElementById('results').innerHTML = `<div class="anime">
   <div>
-    <div class="stat">${res.finished ? 'Finished' : 'Ongoing'}</div>
-    <img src="${state[si].img}">
+    ${res.finished===null?'':`<div class="stat">${res.finished?'Finished':'Ongoing'}</div>`}
+    <img src="${state[si].img}" referrerpolicy="no-referrer">
   </div>
   <div style="flex:1">
     <b>Episodes</b>
@@ -400,6 +397,21 @@ function episodes() {
             finished: res.status==='Ended',
             next: res.next_episode_to_air?res.next_episode_to_air.air_date:'',
             eps: episodes.toReversed()
+          });
+        });
+      break;
+    case 6:
+      fetch(`https://ww4.animeonline.ninja/online/${state[si].id}/`)
+        .then(res=>res.text())
+        .then(res=>{
+          const parser = new DOMParser();
+          let doc = parser.parseFromString(res, 'text/html');
+          showEpisodes({
+            finished: null,
+            next: null,
+            eps: Array.from(doc.querySelectorAll('#seasons .episodios li'))
+              .map(ep=>{return { id: ep.querySelector('a').href.split('/').slice(-2)[0], n: ep.querySelector('.numerando').innerText.split(' - ')[1], s: ep.querySelector('.numerando').innerText.split(' - ')[0] }})
+              .toReversed()
           });
         });
       break;
