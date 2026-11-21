@@ -449,7 +449,7 @@ function episodes() {
 }
 
 const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
-const unsandboxed = ['vidtube.site','vidwish.live','vidsrcme.su','myvidplay.com','megaplay.buzz'];
+const unsandboxed = ['vidtube.site','vidwish.live','vidsrcme.su','myvidplay.com','megaplay.buzz','vidup.to','vidsrc.su','vidnest.fun','vaplayer.ru','vidfast.vc'];
 function updateVid(code, provider, extra='') {
   let iframe = document.querySelector('iframe');
   if (extra) iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
@@ -568,14 +568,23 @@ function video() {
       geturl(`https://api.themoviedb.org/3/${state[si].id.replace('-','/')}?api_key=abbf502ad7ef5458bf0b91e09d5043c0`)
         .then(res=>{
           res = JSON.parse(res);
-          let videos = [];
-          if (state[si].id.startsWith('movie-')) {
-            videos = [{ title: 'VidSrcMe', ads: false, code: 'https://vidsrcme.su/embed/movie?imdb='+res.imdb_id }];
-          } else {
-            videos = [{ title: 'VidSrcMe', ads: false, code: `https://vidsrcme.su/embed/tv?tmdb=${res.id}&season=${state[si].es}&episode=${state[si].e}` }];
-          }
-          showVideo(videos, provider);
-          updateVid(videos[0].code, provider);
+          geturl(`https://123moviesgot.pages.dev/main.bundle.js`)
+            .then(srvs=>{
+              srvs = srvs.match(/const srvs = (\[.+?\]);/gi);
+              let videos = JSON.parse(srvs[state[si].id.startsWith('movie-')?0:1]
+                .split(' = ')[1]
+                .replaceAll(/\$\{(tmId|t)\}/gi, res.imdb_id)
+                .replaceAll('${tm}', res.id)
+                .replaceAll('${sN}', state[si].es)
+                .replaceAll('${ep}', state[si].e)
+                .replaceAll('{n:', '{"n":')
+                .replaceAll(',u:', ',"u":')
+                .replaceAll('`', '"')
+                .replace('];',']'))
+                .map(srv=>({ title: srv.n, ads: false, code: srv.u }));
+              showVideo(videos, provider);
+              updateVid(videos[0].code, provider);
+            });
         });
       break;
   }
