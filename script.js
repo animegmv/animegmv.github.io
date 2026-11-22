@@ -158,7 +158,8 @@ function search() {
         })
       break;
     case 6:
-      geturl(`https://ww3.animeonline.ninja/page/${page}?s=${quer}`)
+      fetch(`https://ww4.animeonline.ninja/page/${page}?s=${quer}`)
+        .then(res=>res.text())
         .then(res=>{
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
@@ -452,9 +453,9 @@ const dontLikeTheSandbox = 'SW,Netu,Stape'.split(',');
 const unsandboxed = ['vidtube.site','vidwish.live','vidsrcme.su','myvidplay.com','megaplay.buzz','vidup.to','vidsrc.su','vidnest.fun','vaplayer.ru','vidfast.vc'];
 function updateVid(code, provider, extra='') {
   let iframe = document.querySelector('iframe');
-  if (extra) iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
+  if (extra) iframe[dontLikeTheSandbox.includes(extra)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
   function setUrl(url) {
-    iframe[unsandboxed.includes(new URL(url).hostname)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
+    iframe[unsandboxed.includes(new URL(url).hostname)?'removeAttribute':'setAttribute']('sandbox', 'allow-downloads allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin');
     iframe.src = url;
   }
   switch(provider) {
@@ -464,6 +465,7 @@ function updateVid(code, provider, extra='') {
       break;
     case 0:
     case 5:
+    case 6:
       setUrl(code);
       break;
     case 3:
@@ -487,7 +489,7 @@ function showVideo(videos, provider) {
   document.getElementById('results').innerHTML = `${videos.map(s=>`<button onclick="updateVid('${s.code}', ${provider}, '${s.title}')">${s.title}${s.ads?' (ADS)':''}</button>`).join('')}
 <br>
 <div>
-  <iframe allowfullscreen referrerpolicy="no-referrer" sandbox="allow-downloads allow-forms allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin" allow="autoplay; compute-pressure; cross-origin-isolated; encrypted-media; fullscreen; gamepad; local-fonts; midi; picture-in-picture; screen-wake-lock; speaker-selection; storage-access; web-share"></iframe>
+  <iframe allowfullscreen referrerpolicy="no-referrer" sandbox="allow-downloads allow-modals allow-orientation-lock allow-presentation allow-scripts allow-same-origin" allow="autoplay; compute-pressure; cross-origin-isolated; encrypted-media; fullscreen; gamepad; local-fonts; midi; picture-in-picture; screen-wake-lock; speaker-selection; storage-access; web-share"></iframe>
 </div>
 <span style="display:flex">
   <button onclick="si=state.length;state[si]=state[si-1];state[si].e='${Number(state[si].e)-1}';setTop();"${state[si].e<2?' style="display:none"':''}>Prev</button>
@@ -587,6 +589,19 @@ function video() {
             });
         });
       break;
+    case 6:
+      fetch(`https://ww4.animeonline.ninja/episodio/${state[si].eid}/`)
+        .then(res=>res.text())
+        .then(res=>{
+          fetch(`https://ww4.animeonline.ninja/wp-json/dooplayer/v1/post/${res.match(/postid-([0-9]+?) /)[1]}?type=tv&source=1`)
+            .then(src=>src.json())
+            .then(src=>{
+              let videos = [{ title: 'Server', ads: true, code: src.embed_url }];
+              showVideo(videos, provider);
+              updateVid(videos[0].code, provider);
+            });
+        });
+      break;
   }
 }
 
@@ -614,12 +629,12 @@ ${proxy===proxyUrls.length?'<span>Extremly limited access</span>':(proxy!==0?'<s
   <option value="3">anikototv.to</option>
   <option value="4">aniwaves.ru</option>
   <option value="0">reanime.to</option>
+  <option value="6">animeonline.ninja</option>
   <option value="1">animeflv.one</option>
   <option value="2">animeflv.ar</option>
   <option disabled>————— Movies —————</option>
   <option value="5">123moviesgot.pages.dev</option>
   <option disabled>—————— WIP ——————</option>
-  <option value="6">animeonline.ninja</option>
   <option value="7">jkanime.net</option>
   <option value="8">miruro.to</option>
   <option value="9">miruro.bz</option>
