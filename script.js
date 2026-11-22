@@ -522,7 +522,7 @@ function video() {
       break;
     case 1:
     case 2:
-      geturl(`https://www3.animeflv.net/ver/${state[si].id}-${state[si].e}`)
+      geturl(`https://www3.animeflv.${['one','ar'][provider-1]}/ver/${state[si].id}-${state[si].e}`)
         .then(res=>{
           let videos = JSON.parse(res.match(/var videos = {[^¬].*?};/)[0].split(';')[0].split(' = ')[1]);
           showVideo(videos.SUB, provider);
@@ -630,11 +630,11 @@ ${proxy===proxyUrls.length?'<span>Extremly limited access</span>':(proxy!==0?'<s
   <option value="4">aniwaves.ru</option>
   <option value="0">reanime.to</option>
   <option value="6">animeonline.ninja</option>
-  <option value="1">animeflv.one</option>
-  <option value="2">animeflv.ar</option>
   <option disabled>————— Movies —————</option>
   <option value="5">123moviesgot.pages.dev</option>
   <option disabled>—————— WIP ——————</option>
+  <option value="1">animeflv.one</option>
+  <option value="2">animeflv.ar</option>
   <option value="7">jkanime.net</option>
   <option value="8">miruro.to</option>
   <option value="9">miruro.bz</option>
