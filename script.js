@@ -258,9 +258,9 @@ function search() {
           const parser = new DOMParser();
           const doc = parser.parseFromString(res, 'text/html');
           let con = Array.from(doc.querySelector('main>section>div.grid').querySelectorAll('article'))
-            .map(m => {
+            .map(m=>{
               return {
-                id: m.querySelector('a').href.split('/')[2],
+                id: m.querySelector('a').href.split('/')[4],
                 title: m.querySelector('h3').innerText.replaceAll("'","&#39;"),
                 img: getImgUrl(m.querySelector('img').src)
               };
@@ -446,6 +446,20 @@ function episodes() {
             });
         });
       break;
+    case 12:
+      geturl(`https://animeav1.com/media/${state[si].id}/`)
+        .then(res=>{
+          const parser = new DOMParser();
+          let doc = parser.parseFromString(res, 'text/html');
+          showEpisodes({
+            finished: null,
+            next: null,
+            eps: Array.from(doc.querySelectorAll('main section.grid article'))
+              .map(ep=>{return { id: ep.querySelector('a').href.split('/').slice(-1)[0], n: ep.querySelector('a').href.split('/').slice(-1)[0] }})
+              .toReversed()
+          });
+        });
+      break;
   }
 }
 
@@ -463,11 +477,6 @@ function updateVid(code, provider, extra='') {
     case 2:
       iframe.src = code;
       break;
-    case 0:
-    case 5:
-    case 6:
-      setUrl(code);
-      break;
     case 3:
     case 4:
       getadvancedurl(`https://${['anikototv.to/ajax/server?get=','aniwaves.ru/ajax/sources?id='][provider-3]}${code}`, {
@@ -481,6 +490,9 @@ function updateVid(code, provider, extra='') {
         .then(res=>{
           setUrl(res.result.url);
         });
+      break;
+    default:
+      setUrl(code);
       break;
   }
 }
@@ -600,6 +612,16 @@ function video() {
               showVideo(videos, provider);
               updateVid(videos[0].code, provider);
             });
+        });
+      break;
+    case 12:
+      geturl(`https://animeav1.com/media/${state[si].id}/${state[si].eid}`)
+        .then(res=>{
+          const parser = new DOMParser();
+          let doc = parser.parseFromString(res, 'text/html');
+          let videos = [{ title: 'Server', ads: false, code: doc.querySelector('iframe').src }];
+          showVideo(videos, provider);
+          updateVid(videos[0].code, provider);
         });
       break;
   }
